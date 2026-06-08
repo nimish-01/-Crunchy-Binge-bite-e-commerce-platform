@@ -1,0 +1,47 @@
+[webhook/razorpay] Invalid signature — possible forged request
+[webhook/razorpay] payment.captured but no PendingPayment for order_nonexistent999 — cannot recover order
+Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.order.findUnique()` invocation:
+
+
+Can't reach database server at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`.
+    at async POST (src\app\api\webhooks\razorpay\route.ts:59:22)
+  57 |   if (eventType === "payment.captured") {
+  58 |     // Idempotency: if order already exists (created by /verify), we're done
+> 59 |     const existing = await prisma.order.findUnique({
+     |                      ^
+  60 |       where: { razorpayOrderId },
+  61 |       select: { id: true, orderNumber: true },
+  62 |     }) {
+  code: 'P1001',
+  clientVersion: '5.22.0',
+  meta: [Object]
+}
+Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.order.findUnique()` invocation:
+
+
+Can't reach database server at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`.
+    at async POST (src\app\api\webhooks\razorpay\route.ts:59:22)
+  57 |   if (eventType === "payment.captured") {
+  58 |     // Idempotency: if order already exists (created by /verify), we're done
+> 59 |     const existing = await prisma.order.findUnique({
+     |                      ^
+  60 |       where: { razorpayOrderId },
+  61 |       select: { id: true, orderNumber: true },
+  62 |     }) {
+  code: 'P1001',
+  clientVersion: '5.22.0',
+  meta: [Object]
+}
+[webhook/razorpay] payment.failed — rpOrderId=order_fail1 paymentId=pay_fail1 error=BAD_REQUEST_ERROR: Payment declined
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[webhook/razorpay] payment.captured but no PendingPayment for order_idem001 — cannot recover order
+[webhook/razorpay] payment.captured but no PendingPayment for order_idem001 — cannot recover order
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\raman\binge-bite\.next\cache\webpack\server-development\4.pack.gz_' -> 'C:\Users\raman\binge-bite\.next\cache\webpack\server-development\4.pack.gz'

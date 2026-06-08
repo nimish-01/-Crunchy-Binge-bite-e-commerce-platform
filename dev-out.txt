@@ -1,0 +1,146 @@
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.27:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled /instrumentation in 502ms (20 modules)
+ ✓ Ready in 4.1s
+ ○ Compiling /api/webhooks/razorpay ...
+ ✓ Compiled /api/webhooks/razorpay in 2.5s (307 modules)
+ POST /api/webhooks/razorpay 400 in 2869ms
+ POST /api/webhooks/razorpay 401 in 39ms
+prisma:query SELECT "public"."Order"."id", "public"."Order"."orderNumber" FROM "public"."Order" WHERE ("public"."Order"."razorpayOrderId" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."PendingPayment"."id", "public"."PendingPayment"."razorpayOrderId", "public"."PendingPayment"."userId", "public"."PendingPayment"."addressId", "public"."PendingPayment"."couponCode", "public"."PendingPayment"."expectedAmountPaise", "public"."PendingPayment"."createdAt", "public"."PendingPayment"."expiresAt" FROM "public"."PendingPayment" WHERE ("public"."PendingPayment"."razorpayOrderId" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /api/webhooks/razorpay 200 in 3343ms
+prisma:error Error in PostgreSQL connection: Error { kind: Db, cause: Some(DbError { severity: "FATAL", parsed_severity: Some(Fatal), code: SqlState(E57P01), message: "terminating connection due to administrator command", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("postgres.c"), line: Some(3357), routine: Some("ProcessInterrupts") }) }
+prisma:error 
+Invalid `prisma.order.findUnique()` invocation:
+
+
+Can't reach database server at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`.
+ POST /api/webhooks/razorpay 500 in 5343ms
+prisma:error 
+Invalid `prisma.order.findUnique()` invocation:
+
+
+Can't reach database server at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`.
+ POST /api/webhooks/razorpay 500 in 5243ms
+prisma:error 
+Invalid `prisma.pendingPayment.deleteMany()` invocation:
+
+
+Can't reach database server at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-sparkling-cake-apjdlfn9.c-7.us-east-1.aws.neon.tech:5432`.
+ POST /api/webhooks/razorpay 200 in 5066ms
+ POST /api/webhooks/razorpay 200 in 59ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 5.5s (784 modules)
+ GET /api/admin/orders 404 in 6064ms
+ ✓ Compiled in 900ms (280 modules)
+ ✓ Compiled /api/webhooks/razorpay in 262ms (499 modules)
+prisma:query SELECT "public"."Order"."id", "public"."Order"."orderNumber" FROM "public"."Order" WHERE ("public"."Order"."razorpayOrderId" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."PendingPayment"."id", "public"."PendingPayment"."razorpayOrderId", "public"."PendingPayment"."userId", "public"."PendingPayment"."addressId", "public"."PendingPayment"."couponCode", "public"."PendingPayment"."expectedAmountPaise", "public"."PendingPayment"."createdAt", "public"."PendingPayment"."expiresAt" FROM "public"."PendingPayment" WHERE ("public"."PendingPayment"."razorpayOrderId" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /api/webhooks/razorpay 200 in 3551ms
+prisma:query SELECT "public"."Order"."id", "public"."Order"."orderNumber" FROM "public"."Order" WHERE ("public"."Order"."razorpayOrderId" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."PendingPayment"."id", "public"."PendingPayment"."razorpayOrderId", "public"."PendingPayment"."userId", "public"."PendingPayment"."addressId", "public"."PendingPayment"."couponCode", "public"."PendingPayment"."expectedAmountPaise", "public"."PendingPayment"."createdAt", "public"."PendingPayment"."expiresAt" FROM "public"."PendingPayment" WHERE ("public"."PendingPayment"."razorpayOrderId" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /api/webhooks/razorpay 200 in 483ms
+ ○ Compiling /api/payment/verify ...
+ ✓ Compiled /api/payment/verify in 634ms (777 modules)
+ POST /api/payment/verify 401 in 856ms
+ POST /api/payment/verify 401 in 43ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1720ms (244 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 7.9s (1057 modules)
+prisma:query SELECT 1
+prisma:query SELECT "public"."Product"."id", "public"."Product"."name", "public"."Product"."slug", "public"."Product"."description", "public"."Product"."shortDescription", "public"."Product"."categoryId", "public"."Product"."images", "public"."Product"."tags", "public"."Product"."dietaryTags", "public"."Product"."nutritionalInfo", "public"."Product"."allergenInfo", "public"."Product"."isFeatured", "public"."Product"."isSubscriptionEligible", "public"."Product"."status"::text, "public"."Product"."seoTitle", "public"."Product"."seoDesc", "public"."Product"."createdAt", "public"."Product"."updatedAt" FROM "public"."Product" WHERE "public"."Product"."status" = CAST($1::text AS "public"."ProductStatus") ORDER BY "public"."Product"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."ProductVariant"."id", "public"."ProductVariant"."productId", "public"."ProductVariant"."weight", "public"."ProductVariant"."price", "public"."ProductVariant"."mrp", "public"."ProductVariant"."sku", "public"."ProductVariant"."stock", "public"."ProductVariant"."lowStockThreshold", "public"."ProductVariant"."isActive", "public"."ProductVariant"."createdAt", "public"."ProductVariant"."updatedAt" FROM "public"."ProductVariant" WHERE ("public"."ProductVariant"."isActive" = $1 AND "public"."ProductVariant"."productId" IN ($2,$3,$4)) OFFSET $5
+prisma:query SELECT "public"."Category"."id", "public"."Category"."name", "public"."Category"."slug", "public"."Category"."description", "public"."Category"."image", "public"."Category"."sortOrder", "public"."Category"."isActive", "public"."Category"."seoTitle", "public"."Category"."seoDesc", "public"."Category"."createdAt", "public"."Category"."updatedAt" FROM "public"."Category" WHERE "public"."Category"."id" IN ($1,$2,$3) OFFSET $4
+prisma:query SELECT "public"."Product"."id", "public"."Product"."name", "public"."Product"."slug", "public"."Product"."description", "public"."Product"."shortDescription", "public"."Product"."categoryId", "public"."Product"."images", "public"."Product"."tags", "public"."Product"."dietaryTags", "public"."Product"."nutritionalInfo", "public"."Product"."allergenInfo", "public"."Product"."isFeatured", "public"."Product"."isSubscriptionEligible", "public"."Product"."status"::text, "public"."Product"."seoTitle", "public"."Product"."seoDesc", "public"."Product"."createdAt", "public"."Product"."updatedAt" FROM "public"."Product" WHERE ("public"."Product"."isFeatured" = $1 AND "public"."Product"."status" = CAST($2::text AS "public"."ProductStatus")) ORDER BY "public"."Product"."id" ASC LIMIT $3 OFFSET $4
+prisma:query SELECT "public"."ProductVariant"."id", "public"."ProductVariant"."productId", "public"."ProductVariant"."weight", "public"."ProductVariant"."price", "public"."ProductVariant"."mrp", "public"."ProductVariant"."sku", "public"."ProductVariant"."stock", "public"."ProductVariant"."lowStockThreshold", "public"."ProductVariant"."isActive", "public"."ProductVariant"."createdAt", "public"."ProductVariant"."updatedAt" FROM "public"."ProductVariant" WHERE ("public"."ProductVariant"."isActive" = $1 AND "public"."ProductVariant"."productId" IN ($2,$3)) OFFSET $4
+prisma:query SELECT "public"."Category"."id", "public"."Category"."name", "public"."Category"."slug", "public"."Category"."description", "public"."Category"."image", "public"."Category"."sortOrder", "public"."Category"."isActive", "public"."Category"."seoTitle", "public"."Category"."seoDesc", "public"."Category"."createdAt", "public"."Category"."updatedAt" FROM "public"."Category" WHERE "public"."Category"."id" IN ($1,$2) OFFSET $3
+ GET / 200 in 12486ms
+prisma:query SELECT "public"."Product"."id", "public"."Product"."name", "public"."Product"."slug", "public"."Product"."description", "public"."Product"."shortDescription", "public"."Product"."categoryId", "public"."Product"."images", "public"."Product"."tags", "public"."Product"."dietaryTags", "public"."Product"."nutritionalInfo", "public"."Product"."allergenInfo", "public"."Product"."isFeatured", "public"."Product"."isSubscriptionEligible", "public"."Product"."status"::text, "public"."Product"."seoTitle", "public"."Product"."seoDesc", "public"."Product"."createdAt", "public"."Product"."updatedAt" FROM "public"."Product" WHERE "public"."Product"."status" = CAST($1::text AS "public"."ProductStatus") ORDER BY "public"."Product"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Product"."id", "public"."Product"."name", "public"."Product"."slug", "public"."Product"."description", "public"."Product"."shortDescription", "public"."Product"."categoryId", "public"."Product"."images", "public"."Product"."tags", "public"."Product"."dietaryTags", "public"."Product"."nutritionalInfo", "public"."Product"."allergenInfo", "public"."Product"."isFeatured", "public"."Product"."isSubscriptionEligible", "public"."Product"."status"::text, "public"."Product"."seoTitle", "public"."Product"."seoDesc", "public"."Product"."createdAt", "public"."Product"."updatedAt" FROM "public"."Product" WHERE ("public"."Product"."isFeatured" = $1 AND "public"."Product"."status" = CAST($2::text AS "public"."ProductStatus")) ORDER BY "public"."Product"."id" ASC LIMIT $3 OFFSET $4
+prisma:query SELECT "public"."ProductVariant"."id", "public"."ProductVariant"."productId", "public"."ProductVariant"."weight", "public"."ProductVariant"."price", "public"."ProductVariant"."mrp", "public"."ProductVariant"."sku", "public"."ProductVariant"."stock", "public"."ProductVariant"."lowStockThreshold", "public"."ProductVariant"."isActive", "public"."ProductVariant"."createdAt", "public"."ProductVariant"."updatedAt" FROM "public"."ProductVariant" WHERE ("public"."ProductVariant"."isActive" = $1 AND "public"."ProductVariant"."productId" IN ($2,$3,$4)) OFFSET $5
+prisma:query SELECT "public"."ProductVariant"."id", "public"."ProductVariant"."productId", "public"."ProductVariant"."weight", "public"."ProductVariant"."price", "public"."ProductVariant"."mrp", "public"."ProductVariant"."sku", "public"."ProductVariant"."stock", "public"."ProductVariant"."lowStockThreshold", "public"."ProductVariant"."isActive", "public"."ProductVariant"."createdAt", "public"."ProductVariant"."updatedAt" FROM "public"."ProductVariant" WHERE ("public"."ProductVariant"."isActive" = $1 AND "public"."ProductVariant"."productId" IN ($2,$3)) OFFSET $4
+prisma:query SELECT "public"."Category"."id", "public"."Category"."name", "public"."Category"."slug", "public"."Category"."description", "public"."Category"."image", "public"."Category"."sortOrder", "public"."Category"."isActive", "public"."Category"."seoTitle", "public"."Category"."seoDesc", "public"."Category"."createdAt", "public"."Category"."updatedAt" FROM "public"."Category" WHERE "public"."Category"."id" IN ($1,$2) OFFSET $3
+prisma:query SELECT "public"."Category"."id", "public"."Category"."name", "public"."Category"."slug", "public"."Category"."description", "public"."Category"."image", "public"."Category"."sortOrder", "public"."Category"."isActive", "public"."Category"."seoTitle", "public"."Category"."seoDesc", "public"."Category"."createdAt", "public"."Category"."updatedAt" FROM "public"."Category" WHERE "public"."Category"."id" IN ($1,$2,$3) OFFSET $4
+ GET / 200 in 2693ms
+prisma:error Error in PostgreSQL connection: Error { kind: Db, cause: Some(DbError { severity: "FATAL", parsed_severity: Some(Fatal), code: SqlState(E57P01), message: "terminating connection due to administrator command", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("postgres.c"), line: Some(3357), routine: Some("ProcessInterrupts") }) }
+prisma:error Error in PostgreSQL connection: Error { kind: Db, cause: Some(DbError { severity: "FATAL", parsed_severity: Some(Fatal), code: SqlState(E57P01), message: "terminating connection due to administrator command", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("postgres.c"), line: Some(3357), routine: Some("ProcessInterrupts") }) }
+ ✓ Compiled in 1369ms (252 modules)
+ ✓ Compiled in 1745ms (390 modules)
+ ✓ Compiled in 944ms (390 modules)
+ ✓ Compiled in 849ms (390 modules)
+ ✓ Compiled in 524ms (390 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 979ms (667 modules)
+prisma:error 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    id: "cmq2a66bk0002rsm2x2hjf48t"
+  },
+  select: {
+    isActive: true,
+    role: true,
+    tokenVersion: true,
+    ~~~~~~~~~~~~
+?   id?: true,
+?   name?: true,
+?   email?: true,
+?   phone?: true,
+?   passwordHash?: true,
+?   emailVerified?: true,
+?   image?: true,
+?   loyaltyPoints?: true,
+?   loyaltyTier?: true,
+?   referralCode?: true,
+?   createdAt?: true,
+?   updatedAt?: true,
+?   accounts?: true,
+?   sessions?: true,
+?   addresses?: true,
+?   orders?: true,
+?   cart?: true,
+?   wishlists?: true,
+?   reviews?: true,
+?   notifications?: true,
+?   loyaltyTransactions?: true,
+?   referralsGiven?: true,
+?   referralsReceived?: true,
+?   couponUsages?: true,
+?   subscriptions?: true,
+?   inventoryLogs?: true,
+?   _count?: true
+  }
+}
+
+Unknown field `tokenVersion` for select statement on model `User`. Available options are marked with ?.
+prisma:query SELECT "public"."Product"."id", "public"."Product"."name", "public"."Product"."slug", "public"."Product"."description", "public"."Product"."shortDescription", "public"."Product"."categoryId", "public"."Product"."images", "public"."Product"."tags", "public"."Product"."dietaryTags", "public"."Product"."nutritionalInfo", "public"."Product"."allergenInfo", "public"."Product"."isFeatured", "public"."Product"."isSubscriptionEligible", "public"."Product"."status"::text, "public"."Product"."seoTitle", "public"."Product"."seoDesc", "public"."Product"."createdAt", "public"."Product"."updatedAt" FROM "public"."Product" WHERE "public"."Product"."status" = CAST($1::text AS "public"."ProductStatus") ORDER BY "public"."Product"."createdAt" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Product"."id", "public"."Product"."name", "public"."Product"."slug", "public"."Product"."description", "public"."Product"."shortDescription", "public"."Product"."categoryId", "public"."Product"."images", "public"."Product"."tags", "public"."Product"."dietaryTags", "public"."Product"."nutritionalInfo", "public"."Product"."allergenInfo", "public"."Product"."isFeatured", "public"."Product"."isSubscriptionEligible", "public"."Product"."status"::text, "public"."Product"."seoTitle", "public"."Product"."seoDesc", "public"."Product"."createdAt", "public"."Product"."updatedAt" FROM "public"."Product" WHERE ("public"."Product"."isFeatured" = $1 AND "public"."Product"."status" = CAST($2::text AS "public"."ProductStatus")) ORDER BY "public"."Product"."id" ASC LIMIT $3 OFFSET $4
+prisma:query SELECT "public"."ProductVariant"."id", "public"."ProductVariant"."productId", "public"."ProductVariant"."weight", "public"."ProductVariant"."price", "public"."ProductVariant"."mrp", "public"."ProductVariant"."sku", "public"."ProductVariant"."stock", "public"."ProductVariant"."lowStockThreshold", "public"."ProductVariant"."isActive", "public"."ProductVariant"."createdAt", "public"."ProductVariant"."updatedAt" FROM "public"."ProductVariant" WHERE ("public"."ProductVariant"."isActive" = $1 AND "public"."ProductVariant"."productId" IN ($2,$3,$4)) OFFSET $5
+prisma:query SELECT "public"."ProductVariant"."id", "public"."ProductVariant"."productId", "public"."ProductVariant"."weight", "public"."ProductVariant"."price", "public"."ProductVariant"."mrp", "public"."ProductVariant"."sku", "public"."ProductVariant"."stock", "public"."ProductVariant"."lowStockThreshold", "public"."ProductVariant"."isActive", "public"."ProductVariant"."createdAt", "public"."ProductVariant"."updatedAt" FROM "public"."ProductVariant" WHERE ("public"."ProductVariant"."isActive" = $1 AND "public"."ProductVariant"."productId" IN ($2,$3)) OFFSET $4
+prisma:query SELECT "public"."Category"."id", "public"."Category"."name", "public"."Category"."slug", "public"."Category"."description", "public"."Category"."image", "public"."Category"."sortOrder", "public"."Category"."isActive", "public"."Category"."seoTitle", "public"."Category"."seoDesc", "public"."Category"."createdAt", "public"."Category"."updatedAt" FROM "public"."Category" WHERE "public"."Category"."id" IN ($1,$2,$3) OFFSET $4
+prisma:query SELECT "public"."Category"."id", "public"."Category"."name", "public"."Category"."slug", "public"."Category"."description", "public"."Category"."image", "public"."Category"."sortOrder", "public"."Category"."isActive", "public"."Category"."seoTitle", "public"."Category"."seoDesc", "public"."Category"."createdAt", "public"."Category"."updatedAt" FROM "public"."Category" WHERE "public"."Category"."id" IN ($1,$2) OFFSET $3
+ GET / 200 in 8879ms
+ ✓ Compiled in 3.9s (1301 modules)
+ ✓ Compiled in 602ms (390 modules)
+ ✓ Compiled in 1058ms (1301 modules)
+ ✓ Compiled in 488ms (390 modules)
+ ✓ Compiled in 428ms (390 modules)
+ ✓ Compiled in 1074ms (642 modules)
+ ✓ Compiled in 542ms (390 modules)
+ ✓ Compiled in 390ms (390 modules)
+ ✓ Compiled in 352ms (390 modules)
+ ✓ Compiled in 394ms (390 modules)
+ ✓ Compiled in 372ms (390 modules)
+[?25h
