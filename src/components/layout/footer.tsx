@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
+import { getSiteSettings } from "@/lib/settings"
 
 const LINKS = {
   Shop: [
@@ -22,7 +23,21 @@ const LINKS = {
   ],
 }
 
-export default function Footer() {
+export default async function Footer() {
+  const s = await getSiteSettings()
+
+  const socialLinks = [
+    { label: "Instagram", href: s.instagram },
+    { label: "Facebook",  href: s.facebook  },
+    { label: "Twitter",   href: s.twitter   },
+    { label: "YouTube",   href: s.youtube   },
+    { label: "LinkedIn",  href: s.linkedin  },
+  ].filter((l) => l.href)
+
+  const copyright =
+    s.copyrightText ||
+    `© ${new Date().getFullYear()} ${s.companyName}. All rights reserved.`
+
   return (
     <footer className="border-t border-border/40 bg-card mt-20">
       <div className="container py-12">
@@ -31,15 +46,26 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl mb-4">
               <span className="text-brand-500">🌾</span>
-              <span>Binge Bite</span>
+              <span>{s.companyName}</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Premium flavored makhana. Roasted to perfection, seasoned with love. Guilt-free snacking for modern India.
+              {s.footerText}
             </p>
-            <div className="flex gap-3 mt-4">
-              <a href="#" className="text-muted-foreground hover:text-brand-500 transition-colors text-sm">Instagram</a>
-              <a href="#" className="text-muted-foreground hover:text-brand-500 transition-colors text-sm">Facebook</a>
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-4">
+                {socialLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-brand-500 transition-colors text-sm"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {Object.entries(LINKS).map(([group, items]) => (
@@ -48,7 +74,10 @@ export default function Footer() {
               <ul className="space-y-2">
                 {items.map((item) => (
                   <li key={item.href}>
-                    <Link href={item.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <Link
+                      href={item.href}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
                       {item.label}
                     </Link>
                   </li>
@@ -61,7 +90,7 @@ export default function Footer() {
         <Separator className="my-8" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Binge Bite. All rights reserved.</p>
+          <p>{copyright}</p>
           <div className="flex gap-1 items-center">
             <span>Made in</span>
             <span className="text-brand-500">India 🇮🇳</span>

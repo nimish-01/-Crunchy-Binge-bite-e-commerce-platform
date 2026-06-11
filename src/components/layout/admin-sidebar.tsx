@@ -18,7 +18,7 @@ const NAV = [
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Inventory", href: "/admin/inventory", icon: Warehouse },
   { label: "Coupons", href: "/admin/coupons", icon: Ticket },
-  { label: "Banners / CMS", href: "/admin/banners", icon: Image },
+  { label: "Homepage CMS", href: "/admin/cms/homepage", icon: Image },
   { label: "Notifications", href: "/admin/notifications", icon: Bell },
   { label: "Reports", href: "/admin/reports", icon: BarChart3 },
   { label: "Settings", href: "/admin/settings", icon: Settings, superAdminOnly: true },

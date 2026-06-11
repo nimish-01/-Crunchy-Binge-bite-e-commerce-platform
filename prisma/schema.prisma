@@ -525,3 +525,78 @@ model AuditLog {
   ipAddress  String?
   createdAt  DateTime @default(now())
 }
+
+model HomepageCMS {
+  id String @id @default("singleton")
+
+  // Hero
+  heroBadge           String  @default("🌾 Premium Makhana — Roasted Fresh")
+  heroHeading         String  @default("Snack Bold.")
+  heroSubheading      String  @default("Stay Fit.")
+  heroDescription     String  @default("Premium flavored makhana for the modern snacker. Zero guilt, maximum crunch, delivered to your door across India.")
+  ctaText             String  @default("Shop Now")
+  ctaLink             String  @default("/products")
+
+  // Section Titles
+  featuredTitle       String  @default("Customer Favorites")
+  featuredBadge       String  @default("Bestsellers")
+  trendingTitle       String  @default("New Arrivals")
+  trendingBadge       String  @default("Just In")
+  reviewsTitle        String  @default("What Customers Say")
+  reviewsBadge        String  @default("Reviews")
+  whyChooseTitle      String  @default("Why Choose Us")
+
+  // Subscription Banner
+  subscriptionTitle   String  @default("Never Run Out Again")
+  subscriptionSubtext String  @default("Subscribe & save up to 15%. Pause, skip, or cancel anytime. No strings attached.")
+  subscriptionCtaText String  @default("Start Your Subscription")
+  subscriptionCtaLink String  @default("/products")
+
+  // Visibility
+  showHero            Boolean @default(true)
+  showWhyChooseUs     Boolean @default(true)
+  showFeatured        Boolean @default(true)
+  showSubscription    Boolean @default(true)
+  showTrending        Boolean @default(true)
+  showReviews         Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+}
+
+model HomepageQuote {
+  id        String   @id @default(cuid())
+  text      String   @db.Text
+  name      String
+  city      String
+  rating    Int      @default(5)
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id              String   @id @default("singleton")
+  // Company
+  companyName     String   @default("Binge Bite")
+  tagline         String   @default("Premium flavored makhana, roasted to perfection.")
+  aboutText       String   @default("") @db.Text
+  supportEmail    String   @default("")
+  supportPhone    String   @default("")
+  whatsappNumber  String   @default("")
+  // Social
+  facebook        String   @default("")
+  instagram       String   @default("")
+  linkedin        String   @default("")
+  twitter         String   @default("")
+  youtube         String   @default("")
+  // Footer
+  footerText      String   @default("Premium flavored makhana. Roasted to perfection, seasoned with love. Guilt-free snacking for modern India.")
+  copyrightText   String   @default("")
+  // Business
+  gstNumber       String   @default("")
+  businessAddress String   @default("") @db.Text
+  googleMapsLink  String   @default("")
+
+  updatedAt DateTime @updatedAt
+}
