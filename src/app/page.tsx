@@ -6,8 +6,9 @@ import { Separator } from "@/components/ui/separator"
 import Header from "@/components/layout/header"
 import Footer from "@/components/layout/footer"
 import ProductCard from "@/components/shop/product-card"
+import HeroCarousel from "@/components/shop/hero-carousel"
 import { prisma } from "@/lib/prisma"
-import { getHomepageCMS, getHomepageQuotes } from "@/lib/homepage"
+import { getHomepageCMS, getHomepageQuotes, getHeroSlides } from "@/lib/homepage"
 
 async function getFeaturedProducts() {
   return prisma.product.findMany({
@@ -33,9 +34,10 @@ const USP_ITEMS = [
 ]
 
 export default async function HomePage() {
-  const [cms, quotes, featured, newArrivals] = await Promise.all([
+  const [cms, quotes, heroSlides, featured, newArrivals] = await Promise.all([
     getHomepageCMS(),
     getHomepageQuotes(),
+    getHeroSlides(),
     getFeaturedProducts(),
     getNewArrivals(),
   ])
@@ -44,57 +46,61 @@ export default async function HomePage() {
     <>
       <Header />
       <main>
-        {/* Hero */}
+        {/* Hero — carousel if slides exist, fallback text hero otherwise */}
         {cms.showHero && (
-          <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(245,158,11,0.08),_transparent_60%)]" />
-            <div className="container relative z-10 py-20">
-              <div className="max-w-2xl">
-                {cms.heroBadge && (
-                  <Badge variant="brand" className="mb-6 text-sm px-4 py-1.5">
-                    {cms.heroBadge}
-                  </Badge>
-                )}
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight tracking-tight mb-6">
-                  {cms.heroHeading}{cms.heroSubheading ? " " : ""}
-                  {cms.heroSubheading && (
-                    <span className="text-transparent bg-clip-text brand-gradient">
-                      {cms.heroSubheading}
-                    </span>
+          heroSlides.length > 0 ? (
+            <HeroCarousel slides={heroSlides} />
+          ) : (
+            <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(245,158,11,0.08),_transparent_60%)]" />
+              <div className="container relative z-10 py-20">
+                <div className="max-w-2xl">
+                  {cms.heroBadge && (
+                    <Badge variant="brand" className="mb-6 text-sm px-4 py-1.5">
+                      {cms.heroBadge}
+                    </Badge>
                   )}
-                </h1>
-                <p className="text-lg text-muted-foreground mb-8 leading-relaxed max-w-lg">
-                  {cms.heroDescription}
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <Button variant="brand" size="xl" asChild>
-                    <Link href={cms.ctaLink}>
-                      {cms.ctaText} <ArrowRight className="h-5 w-5" />
-                    </Link>
-                  </Button>
-                </div>
-                <div className="mt-10 flex items-center gap-6">
-                  <div className="flex -space-x-2">
-                    {["P", "R", "A", "K"].map((l, i) => (
-                      <div key={i} className="h-8 w-8 rounded-full bg-brand-500 border-2 border-background flex items-center justify-center text-xs font-bold text-zinc-950">
-                        {l}
-                      </div>
-                    ))}
+                  <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight tracking-tight mb-6">
+                    {cms.heroHeading}{cms.heroSubheading ? " " : ""}
+                    {cms.heroSubheading && (
+                      <span className="text-transparent bg-clip-text brand-gradient">
+                        {cms.heroSubheading}
+                      </span>
+                    )}
+                  </h1>
+                  <p className="text-lg text-muted-foreground mb-8 leading-relaxed max-w-lg">
+                    {cms.heroDescription}
+                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    <Button variant="brand" size="xl" asChild>
+                      <Link href={cms.ctaLink}>
+                        {cms.ctaText} <ArrowRight className="h-5 w-5" />
+                      </Link>
+                    </Button>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="h-4 w-4 fill-brand-500 text-brand-500" />)}
-                      <span className="font-bold ml-1">4.9</span>
+                  <div className="mt-10 flex items-center gap-6">
+                    <div className="flex -space-x-2">
+                      {["P", "R", "A", "K"].map((l, i) => (
+                        <div key={i} className="h-8 w-8 rounded-full bg-brand-500 border-2 border-background flex items-center justify-center text-xs font-bold text-zinc-950">
+                          {l}
+                        </div>
+                      ))}
                     </div>
-                    <p className="text-xs text-muted-foreground">from 2,400+ happy customers</p>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="h-4 w-4 fill-brand-500 text-brand-500" />)}
+                        <span className="font-bold ml-1">4.9</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">from 2,400+ happy customers</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 hidden xl:flex items-center justify-center">
-              <div className="text-[180px] animate-pulse">🌾</div>
-            </div>
-          </section>
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-96 h-96 hidden xl:flex items-center justify-center">
+                <div className="text-[180px] animate-pulse">🌾</div>
+              </div>
+            </section>
+          )
         )}
 
         {/* Why Choose Us / USP Strip */}

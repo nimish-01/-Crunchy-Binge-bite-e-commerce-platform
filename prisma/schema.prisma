@@ -542,6 +542,25 @@ model MediaAsset {
   createdBy    String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  heroSlides HeroSlide[]
+}
+
+model HeroSlide {
+  id          String      @id @default(cuid())
+  heading     String      @default("")
+  subheading  String      @default("")
+  description String      @default("") @db.Text
+  ctaText     String      @default("")
+  ctaLink     String      @default("")
+  mediaId     String?
+  media       MediaAsset? @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  sortOrder   Int         @default(0)
+  isActive    Boolean     @default(true)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model HomepageCMS {

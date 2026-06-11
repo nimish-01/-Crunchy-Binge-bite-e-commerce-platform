@@ -107,17 +107,17 @@ export default function CmsForm({ cms }: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Tabs defaultValue="hero">
         <TabsList>
-          <TabsTrigger value="hero">Hero</TabsTrigger>
+          <TabsTrigger value="hero">Default Hero</TabsTrigger>
           <TabsTrigger value="sections">Sections</TabsTrigger>
           <TabsTrigger value="visibility">Visibility</TabsTrigger>
         </TabsList>
 
-        {/* ── Hero ──────────────────────────────────────────────────── */}
+        {/* ── Default Hero (fallback when no slides) ───────────────── */}
         <TabsContent value="hero">
           <Card>
             <CardHeader>
-              <CardTitle>Hero Section</CardTitle>
-              <CardDescription>The first thing visitors see on the homepage.</CardDescription>
+              <CardTitle>Default Hero</CardTitle>
+              <CardDescription>Shown as fallback when no Hero Slides are active.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Field label="Badge Text" error={errors.heroBadge?.message}

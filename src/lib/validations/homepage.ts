@@ -31,6 +31,24 @@ export const homepageCMSSchema = z.object({
 
 export type HomepageCMSInput = z.infer<typeof homepageCMSSchema>
 
+export const heroSlideSchema = z.object({
+  heading:     z.string().default(""),
+  subheading:  z.string().default(""),
+  description: z.string().default(""),
+  ctaText:     z.string().default(""),
+  ctaLink:     z.string().default(""),
+  mediaId:     z.string().nullable().optional(),
+  isActive:    z.boolean().default(true),
+  startsAt:    z.string().nullable().optional(),
+  endsAt:      z.string().nullable().optional(),
+})
+
+export type HeroSlideInput = z.infer<typeof heroSlideSchema>
+
+export const heroSlideReorderSchema = z.object({
+  items: z.array(z.object({ id: z.string(), sortOrder: z.number().int() })),
+})
+
 export const homepageQuoteSchema = z.object({
   text:      z.string().min(10, "Quote must be at least 10 characters"),
   name:      z.string().min(2, "Name is required"),

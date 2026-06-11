@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma"
 import CmsForm from "./cms-form"
 import QuotesManager from "./quotes-manager"
+import HeroSlidesManager from "./hero-slides"
 
 export default async function HomepageCMSPage() {
-  const [cms, quotes] = await Promise.all([
+  const [cms, quotes, slides] = await Promise.all([
     prisma.homepageCMS.upsert({
       where: { id: "singleton" },
       create: { id: "singleton" },
@@ -12,6 +13,10 @@ export default async function HomepageCMSPage() {
     prisma.homepageQuote.findMany({
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     }),
+    prisma.heroSlide.findMany({
+      include: { media: true },
+      orderBy: { sortOrder: "asc" },
+    }),
   ])
 
   return (
@@ -19,9 +24,10 @@ export default async function HomepageCMSPage() {
       <div>
         <h1 className="text-2xl font-bold">Homepage CMS</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Manage hero content, section titles, visibility, and customer quotes.
+          Manage hero slides, section titles, visibility, and customer quotes.
         </p>
       </div>
+      <HeroSlidesManager initialSlides={slides} />
       <CmsForm cms={cms} />
       <QuotesManager initialQuotes={quotes} />
     </div>
