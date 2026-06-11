@@ -35,8 +35,10 @@ export default function AdminLoginPage() {
       email: data.email,
       password: data.password,
       redirect: false,
+      callbackUrl: "/admin",
     })
-    if (result?.error || !result?.ok) {
+    const hasError = result?.error && result.error !== "undefined"
+    if (hasError || !result?.ok) {
       setError("Invalid email or password")
       return
     }

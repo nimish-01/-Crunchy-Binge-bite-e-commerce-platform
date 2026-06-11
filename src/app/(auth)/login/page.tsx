@@ -32,8 +32,11 @@ export default function LoginPage() {
       email: data.email,
       password: data.password,
       redirect: false,
+      callbackUrl: "/",
     })
-    if (result?.error || !result?.ok) {
+    // NextAuth v5: result.error may be "undefined" (string) if the prior URL had ?error=undefined
+    const hasError = result?.error && result.error !== "undefined"
+    if (hasError || !result?.ok) {
       setError("Invalid email or password")
       return
     }

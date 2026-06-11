@@ -37,8 +37,10 @@ export default function InventoryLoginPage() {
       email: data.email,
       password: data.password,
       redirect: false,
+      callbackUrl: "/inventory",
     })
-    if (result?.error || !result?.ok) {
+    const hasError = result?.error && result.error !== "undefined"
+    if (hasError || !result?.ok) {
       setError("Invalid email or password")
       return
     }
