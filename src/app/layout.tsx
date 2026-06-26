@@ -6,6 +6,10 @@ import { CartProvider } from "@/contexts/cart-context"
 import { auth } from "@/auth"
 import { SessionProvider } from "next-auth/react"
 import { NotificationProvider } from "@/contexts/notification-context"
+import { ThemeProvider } from "@/contexts/theme-context"
+import AnnouncementBar from "@/components/promotions/announcement-bar"
+import FloatingButton from "@/components/promotions/floating-button"
+import PopupManager from "@/components/promotions/popup-manager"
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] })
@@ -24,13 +28,22 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Synchronously apply saved theme before first paint to prevent flash */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('bb-theme');document.documentElement.classList.add(['dark','light','floral'].includes(t)?t:'dark')}catch(e){document.documentElement.classList.add('dark')}` }} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
         <SessionProvider session={session}>
           <NotificationProvider userId={session?.user?.id}>
             <CartProvider>
-              {children}
-              <Toaster />
+              <ThemeProvider>
+                <AnnouncementBar />
+                {children}
+                <FloatingButton />
+                <PopupManager />
+                <Toaster />
+              </ThemeProvider>
             </CartProvider>
           </NotificationProvider>
         </SessionProvider>

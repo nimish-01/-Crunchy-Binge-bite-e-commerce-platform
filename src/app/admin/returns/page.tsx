@@ -8,12 +8,15 @@ import { ReturnActionsButton } from "./return-actions-button"
 
 const PAGE_SIZE = 20
 
-const STATUS_COLORS = {
-  PENDING: "warning",
-  APPROVED: "success",
-  REJECTED: "destructive",
+const STATUS_COLORS: Record<string, "warning" | "success" | "destructive" | "secondary" | "brand" | "default"> = {
+  PENDING:   "warning",
+  APPROVED:  "success",
+  REJECTED:  "destructive",
+  PICKED:    "brand",
+  RECEIVED:  "brand",
   COMPLETED: "secondary",
-} as const
+  REFUNDED:  "secondary",
+}
 
 interface Props {
   searchParams: Promise<{ status?: string; cursor?: string }>

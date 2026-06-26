@@ -24,13 +24,19 @@ async function requireAuth(req?: NextRequest) {
 }
 
 // GET /api/wishlist — returns authenticated user's wishlist
-export async function GET() {
+// Supports ?productId=xxx to check if a specific product is wishlisted
+export async function GET(req: NextRequest) {
   try {
     const { userId, response } = await requireAuth()
     if (response) return response
 
+    const productId = req.nextUrl.searchParams.get("productId")
+    const where = productId
+      ? { userId: userId!, productId }
+      : { userId: userId! }
+
     const wishlist = await prisma.wishlist.findMany({
-      where: { userId: userId! },
+      where,
       select: {
         id: true,
         productId: true,
@@ -60,7 +66,8 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     })
 
-    return NextResponse.json({ success: true, data: { wishlist } })
+    // Support both response shapes for backward compat
+    return NextResponse.json({ success: true, items: wishlist, data: { wishlist } })
   } catch (error) {
     console.error("[GET /api/wishlist]", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
@@ -98,7 +105,7 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json(
-      { success: true, data: { item }, message: "Added to wishlist" },
+      { success: true, item, data: { item }, message: "Added to wishlist" },
       { status: 201 }
     )
   } catch (error) {
@@ -107,21 +114,26 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// DELETE /api/wishlist?productId=xxx — remove product from wishlist
+// DELETE /api/wishlist?productId=xxx OR ?id=xxx — remove from wishlist
 export async function DELETE(req: NextRequest) {
   try {
     const { userId, response } = await requireAuth()
     if (response) return response
 
+    const id        = req.nextUrl.searchParams.get("id")
     const productId = req.nextUrl.searchParams.get("productId")
-    if (!productId) {
+
+    if (id) {
+      // Delete by wishlist item ID (ownership check via userId)
+      await prisma.wishlist.deleteMany({ where: { id, userId: userId! } })
+    } else if (productId) {
+      await prisma.wishlist.deleteMany({ where: { userId: userId!, productId } })
+    } else {
       return NextResponse.json(
-        { success: false, error: "productId query parameter is required" },
+        { success: false, error: "id or productId query parameter is required" },
         { status: 400 }
       )
     }
-
-    await prisma.wishlist.deleteMany({ where: { userId: userId!, productId } })
 
     return NextResponse.json({ success: true, message: "Removed from wishlist" })
   } catch (error) {

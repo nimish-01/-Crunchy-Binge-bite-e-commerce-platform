@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import ProductForm from "@/components/admin/product-form"
+import ProductMediaGallery from "@/components/admin/product-media-gallery"
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -16,6 +17,7 @@ export default async function EditProductPage({ params }: Props) {
     <div className="space-y-6 max-w-3xl">
       <h1 className="text-2xl font-bold">Edit: {product.name}</h1>
       <ProductForm categories={categories} product={product} />
+      <ProductMediaGallery productId={product.id} />
     </div>
   )
 }

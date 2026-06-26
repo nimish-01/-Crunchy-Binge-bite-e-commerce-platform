@@ -6,13 +6,18 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { formatPrice, formatDate, formatDateTime } from "@/lib/utils"
-import { ArrowLeft, MapPin, Package, CreditCard, Hash, RotateCcw } from "lucide-react"
+import { ArrowLeft, MapPin, Package, CreditCard, Hash, RotateCcw, Truck, ExternalLink } from "lucide-react"
 import { CancelOrderButton } from "./cancel-order-button"
 import { ReturnRequestButton } from "./return-request-button"
+import { ShipmentTimeline } from "@/components/shipping/shipment-timeline"
 
 const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "brand"> = {
-  PENDING: "warning", CONFIRMED: "brand", PACKED: "brand",
-  DISPATCHED: "brand", DELIVERED: "success", CANCELLED: "destructive", REFUNDED: "secondary",
+  PENDING: "warning", CONFIRMED: "brand", PACKING: "brand", PACKED: "brand",
+  READY_TO_SHIP: "brand", SHIPPED: "brand", DISPATCHED: "brand",
+  OUT_FOR_DELIVERY: "brand", DELIVERED: "success",
+  DELIVERY_FAILED: "destructive", CANCELLED: "destructive", REFUNDED: "secondary",
+  RETURN_REQUESTED: "warning", RETURN_APPROVED: "brand", RETURN_PICKED: "brand",
+  RETURN_RECEIVED: "brand", REFUND_COMPLETED: "success",
 }
 
 interface Props { params: Promise<{ id: string }> }
@@ -35,6 +40,12 @@ export default async function OrderDetailPage({ params }: Props) {
       },
       coupon: { select: { code: true, type: true, value: true } },
       returnRequest: { select: { id: true, status: true, requestedAt: true, adminNotes: true } },
+      shipment: {
+        include: {
+          courier: { select: { name: true } },
+          events: { orderBy: { createdAt: "asc" } },
+        },
+      },
     },
   })
 
@@ -42,15 +53,15 @@ export default async function OrderDetailPage({ params }: Props) {
 
   const canCancel = order.status === "PENDING" || order.status === "CONFIRMED"
 
-  // Return eligibility: DELIVERED + deliveredAt set + within max return window + no existing request
   let returnDaysLeft = 0
   const maxReturnWindow = Math.max(...order.items.map((i) => i.product.returnWindowDays))
   if (order.status === "DELIVERED" && order.deliveredAt && maxReturnWindow > 0 && !order.returnRequest) {
     const deadline = new Date(order.deliveredAt.getTime() + maxReturnWindow * 24 * 60 * 60 * 1000)
-    const msLeft = deadline.getTime() - Date.now()
-    returnDaysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000))
+    returnDaysLeft = Math.ceil((deadline.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
   }
   const canReturn = returnDaysLeft > 0
+
+  const isDelivered = order.status === "DELIVERED"
 
   return (
     <div className="space-y-6">
@@ -69,12 +80,53 @@ export default async function OrderDetailPage({ params }: Props) {
             <Badge variant={STATUS_COLORS[order.status] ?? "default"}>{order.status}</Badge>
           </div>
           <p className="text-sm text-muted-foreground">Placed on {formatDateTime(order.createdAt)}</p>
+          {isDelivered && order.deliveredAt && (
+            <p className="text-sm text-green-500 mt-0.5">
+              Delivered on {formatDate(order.deliveredAt)}
+            </p>
+          )}
         </div>
         <div className="flex gap-2 flex-wrap">
           {canCancel && <CancelOrderButton orderId={order.id} />}
           {canReturn && <ReturnRequestButton orderId={order.id} daysLeft={returnDaysLeft} />}
         </div>
       </div>
+
+      {/* Shipment Tracking */}
+      {order.shipment && (
+        <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+            <div className="flex items-center gap-2">
+              <Truck className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium text-sm">Shipment Tracking</span>
+            </div>
+            <div className="flex items-center gap-3">
+              {order.shipment.courier && (
+                <span className="text-xs text-muted-foreground">{order.shipment.courier.name}</span>
+              )}
+              {order.shipment.trackingNumber && (
+                <span className="font-mono text-xs text-brand-400">{order.shipment.trackingNumber}</span>
+              )}
+              {order.shipment.trackingUrl && (
+                <a href={order.shipment.trackingUrl} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground hover:text-brand-400 transition-colors flex items-center gap-1">
+                  Track <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </div>
+          </div>
+          {order.shipment.estimatedDelivery && (
+            <div className="px-4 py-2 border-b border-border/40 bg-brand-500/4">
+              <p className="text-xs text-muted-foreground">
+                Estimated delivery: <span className="font-medium text-foreground">{formatDate(order.shipment.estimatedDelivery)}</span>
+              </p>
+            </div>
+          )}
+          <div className="px-4 py-4">
+            <ShipmentTimeline events={order.shipment.events} />
+          </div>
+        </div>
+      )}
 
       {/* Items */}
       <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
@@ -92,7 +144,9 @@ export default async function OrderDetailPage({ params }: Props) {
                   <img src={img} alt={item.product.name} className="h-14 w-14 rounded-lg object-cover shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm leading-snug">{item.product.name}</p>
+                  <Link href={`/products/${item.product.slug}`} className="font-medium text-sm leading-snug hover:underline">
+                    {item.product.name}
+                  </Link>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {item.variant.weight} · Qty {item.quantity}
                     {item.variant.sku ? ` · SKU: ${item.variant.sku}` : ""}
@@ -177,6 +231,7 @@ export default async function OrderDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
+
       {/* Return Request Status */}
       {order.returnRequest && (
         <div className="rounded-xl border border-border/50 bg-card p-4">

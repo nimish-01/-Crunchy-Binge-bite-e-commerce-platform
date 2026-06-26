@@ -44,3 +44,5 @@ prisma/*.db-journal
 # uploads (keep the folder, ignore contents)
 public/uploads/*
 !public/uploads/.gitkeep
+
+.claude/

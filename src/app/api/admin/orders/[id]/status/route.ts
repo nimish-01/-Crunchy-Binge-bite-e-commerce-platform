@@ -4,7 +4,12 @@ import { requireAdmin, isAdminSession } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 
 const schema = z.object({
-  status: z.enum(["PENDING", "CONFIRMED", "PACKED", "DISPATCHED", "DELIVERED", "CANCELLED", "REFUNDED"]),
+  status: z.enum([
+    "PENDING", "CONFIRMED", "PACKING", "PACKED", "READY_TO_SHIP",
+    "SHIPPED", "OUT_FOR_DELIVERY", "DISPATCHED", "DELIVERED",
+    "DELIVERY_FAILED", "CANCELLED", "REFUNDED",
+    "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_PICKED", "RETURN_RECEIVED", "REFUND_COMPLETED",
+  ]),
 })
 
 type Params = { params: Promise<{ id: string }> }

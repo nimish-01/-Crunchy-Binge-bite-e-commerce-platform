@@ -15,12 +15,14 @@ import { cn } from "@/lib/utils"
 interface ProductCardProps {
   product: ProductWithVariants
   className?: string
+  priority?: boolean
 }
 
-export default function ProductCard({ product, className }: ProductCardProps) {
+export default function ProductCard({ product, className, priority = false }: ProductCardProps) {
   const { addItem, isLoading } = useCart()
   const { toast } = useToast()
   const [adding, setAdding] = useState(false)
+  const [wishlisted, setWishlisted] = useState(false)
 
   const defaultVariant = product.variants.find((v) => v.isActive) ?? product.variants[0]
   if (!defaultVariant) return null
@@ -35,92 +37,180 @@ export default function ProductCard({ product, className }: ProductCardProps) {
     setAdding(true)
     try {
       await addItem(product.id, defaultVariant.id)
-      toast({ title: "Added to cart!", description: product.name, variant: "default" })
+      toast({ title: "Added to cart", description: product.name })
     } catch {
-      toast({ title: "Failed to add", variant: "destructive" })
+      toast({ title: "Could not add to cart", variant: "destructive" })
     } finally {
       setAdding(false)
     }
   }
 
+  function handleWishlist(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setWishlisted((v) => !v)
+  }
+
+  const thumb = product.productMedia?.[0]?.mediaAsset?.secureUrl ?? product.images[0]
+
   return (
-    <Link href={`/products/${product.slug}`} className={cn("group block", className)}>
-      <div className="relative overflow-hidden rounded-xl border border-border/50 bg-card hover:border-brand-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-brand-500/5">
+    <Link
+      href={`/products/${product.slug}`}
+      className={cn("group block outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl", className)}
+      aria-label={`${product.name}, ${formatPrice(defaultVariant.price)}`}
+    >
+      <article className={cn(
+        "relative rounded-xl border bg-card overflow-hidden",
+        "transition-all duration-250",
+        "border-border/50 hover:border-border",
+        "hover:shadow-elevation-2",
+        isOutOfStock && "opacity-80"
+      )}>
+
         {/* Image */}
-        <div className="relative aspect-square bg-zinc-800 overflow-hidden">
-          {product.images[0] ? (
+        <div className="relative aspect-square overflow-hidden bg-accent/30">
+          {thumb ? (
             <Image
-              src={product.images[0]}
+              src={thumb}
               alt={product.name}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+              sizes="(max-width: 480px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              unoptimized
+              priority={priority}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-5xl">🌾</div>
-          )}
-
-          {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {product.isFeatured && <Badge variant="brand" className="text-xs">Bestseller</Badge>}
-            {discount > 0 && <Badge variant="destructive" className="text-xs">{discount}% OFF</Badge>}
-            {isOutOfStock && <Badge variant="secondary" className="text-xs">Out of Stock</Badge>}
-          </div>
-
-          {/* Wishlist */}
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
-            className="absolute top-2 right-2 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400"
-          >
-            <Heart className="h-4 w-4" />
-          </button>
-
-          {/* Add to cart overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-            <Button
-              variant="brand"
-              className="w-full"
-              size="sm"
-              onClick={handleAddToCart}
-              disabled={isOutOfStock || adding || isLoading}
-            >
-              <ShoppingCart className="h-4 w-4" />
-              {isOutOfStock ? "Out of Stock" : adding ? "Adding…" : "Add to Cart"}
-            </Button>
-          </div>
-        </div>
-
-        {/* Info */}
-        <div className="p-3">
-          <p className="text-xs text-muted-foreground mb-1">{product.category?.name}</p>
-          <h3 className="font-medium text-sm leading-tight line-clamp-2 mb-2">{product.name}</h3>
-
-          {/* Tags */}
-          {product.dietaryTags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {product.dietaryTags.slice(0, 2).map((tag) => (
-                <span key={tag} className="text-[10px] text-brand-400 bg-brand-500/10 rounded-full px-2 py-0.5">{tag}</span>
-              ))}
+            <div className="w-full h-full flex items-center justify-center text-5xl">
+              🌾
             </div>
           )}
 
-          {/* Rating placeholder */}
-          <div className="flex items-center gap-1 mb-2">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <Star key={s} className={cn("h-3 w-3", s <= 4 ? "fill-brand-500 text-brand-500" : "text-muted-foreground")} />
-            ))}
-            <span className="text-xs text-muted-foreground">(12)</span>
+          {/* Badges */}
+          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5" aria-label="Product labels">
+            {product.isFeatured && !isOutOfStock && (
+              <Badge className="text-[10px] px-2 py-0.5 bg-brand-500 text-zinc-950 font-semibold border-0">
+                Bestseller
+              </Badge>
+            )}
+            {discount > 0 && !isOutOfStock && (
+              <Badge className="text-[10px] px-2 py-0.5 bg-green-500 text-white font-semibold border-0">
+                {discount}% OFF
+              </Badge>
+            )}
+            {isOutOfStock && (
+              <Badge variant="secondary" className="text-[10px] px-2 py-0.5 font-medium">
+                Sold Out
+              </Badge>
+            )}
+          </div>
+
+          {/* Wishlist button */}
+          <button
+            onClick={handleWishlist}
+            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            aria-pressed={wishlisted}
+            className={cn(
+              "absolute top-2.5 right-2.5 h-8 w-8 rounded-full flex items-center justify-center",
+              "bg-background/85 backdrop-blur-sm border border-border/40",
+              "transition-all duration-200",
+              "opacity-0 group-hover:opacity-100 focus:opacity-100",
+              wishlisted
+                ? "text-red-500 border-red-500/30 bg-red-50/10"
+                : "text-muted-foreground hover:text-red-400"
+            )}
+          >
+            <Heart
+              className="h-3.5 w-3.5"
+              fill={wishlisted ? "currentColor" : "none"}
+            />
+          </button>
+
+          {/* Add to cart — slides up on hover */}
+          {!isOutOfStock && (
+            <div className={cn(
+              "absolute bottom-0 inset-x-0 p-2",
+              "translate-y-full group-hover:translate-y-0",
+              "transition-transform duration-250 ease-out"
+            )}>
+              <Button
+                variant="brand"
+                className="w-full h-9 text-sm gap-2 shadow-brand-md"
+                onClick={handleAddToCart}
+                disabled={adding || isLoading}
+                tabIndex={-1}
+              >
+                <ShoppingCart className="h-3.5 w-3.5" />
+                {adding ? "Adding…" : "Add to Cart"}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="p-3 pt-2.5">
+          {/* Category */}
+          {product.category && (
+            <p className="text-[11px] text-muted-foreground/70 uppercase tracking-wide font-medium mb-1 truncate">
+              {product.category.name}
+            </p>
+          )}
+
+          {/* Name */}
+          <h3 className="text-sm font-medium leading-snug clamp-2 mb-2">
+            {product.name}
+          </h3>
+
+          {/* Rating */}
+          <div className="flex items-center gap-1.5 mb-2.5" aria-label="Rating: 4 out of 5 stars">
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={cn(
+                    "h-3 w-3",
+                    s <= 4
+                      ? "fill-brand-400 text-brand-400"
+                      : "fill-muted text-muted"
+                  )}
+                />
+              ))}
+            </div>
+            <span className="text-[11px] text-muted-foreground">(12)</span>
           </div>
 
           {/* Price */}
           <div className="flex items-baseline gap-2">
-            <span className="font-bold text-foreground">{formatPrice(defaultVariant.price)}</span>
+            <span className="text-sm font-bold">
+              {formatPrice(defaultVariant.price)}
+            </span>
             {defaultVariant.mrp > defaultVariant.price && (
-              <span className="text-xs text-muted-foreground line-through">{formatPrice(defaultVariant.mrp)}</span>
+              <span className="text-xs text-muted-foreground line-through">
+                {formatPrice(defaultVariant.mrp)}
+              </span>
+            )}
+            {discount > 0 && (
+              <span className="text-[11px] font-semibold text-green-500 ml-auto">
+                Save {formatPrice(defaultVariant.mrp - defaultVariant.price)}
+              </span>
             )}
           </div>
         </div>
-      </div>
+      </article>
     </Link>
+  )
+}
+
+/* ─── Skeleton ─────────────────────────────────────────────── */
+export function ProductCardSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn("rounded-xl border border-border/50 bg-card overflow-hidden", className)}>
+      <div className="aspect-square skeleton" />
+      <div className="p-3 space-y-2">
+        <div className="h-3 w-16 skeleton rounded" />
+        <div className="h-4 w-full skeleton rounded" />
+        <div className="h-3.5 w-3/4 skeleton rounded" />
+        <div className="h-4 w-20 skeleton rounded mt-1" />
+      </div>
+    </div>
   )
 }

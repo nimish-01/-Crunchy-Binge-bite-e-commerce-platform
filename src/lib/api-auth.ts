@@ -4,6 +4,15 @@ import { prisma } from "@/lib/prisma"
 import { isAdmin, isInventoryManager } from "@/lib/rbac"
 import type { UserRole } from "@prisma/client"
 
+export type AuthSession = {
+  user: {
+    id: string
+    role: string
+    email?: string | null
+    name?: string | null
+  }
+}
+
 export type AdminSession = {
   userId: string
   role: UserRole
@@ -57,6 +66,29 @@ export async function requireInventoryAccess(): Promise<InventorySession | NextR
 }
 
 export function isAdminSession(val: AdminSession | NextResponse): val is AdminSession {
+  return !(val instanceof NextResponse)
+}
+
+export async function requireAuth(): Promise<AuthSession | NextResponse> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 })
+  }
+  const active = await checkUserActive(session.user.id)
+  if (!active) {
+    return NextResponse.json({ success: false, error: "Account deactivated." }, { status: 401 })
+  }
+  return {
+    user: {
+      id: session.user.id,
+      role: session.user.role as string ?? "CUSTOMER",
+      email: session.user.email,
+      name: session.user.name,
+    },
+  }
+}
+
+export function isAuthenticatedSession(val: AuthSession | NextResponse): val is AuthSession {
   return !(val instanceof NextResponse)
 }
 

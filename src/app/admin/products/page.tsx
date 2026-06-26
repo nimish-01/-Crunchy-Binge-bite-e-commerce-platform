@@ -32,7 +32,15 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   const [products, total, categories] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: { category: true, variants: { where: { isActive: true } } },
+      include: {
+        category: true,
+        variants: { where: { isActive: true } },
+        productMedia: {
+          include: { mediaAsset: { select: { id: true, secureUrl: true, thumbnailUrl: true, resourceType: true, altText: true } } },
+          orderBy: [{ isThumbnail: "desc" }, { sortOrder: "asc" }],
+          take: 1,
+        },
+      },
       orderBy: { createdAt: "desc" },
       skip,
       take: PAGE_SIZE,
@@ -84,12 +92,15 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                 <TableRow key={product.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0">
-                        {product.images[0] ? (
-                          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover rounded-lg" />
-                        ) : (
-                          <Image className="h-5 w-5 text-muted-foreground" />
-                        )}
+                      <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 overflow-hidden">
+                        {(() => {
+                          const thumb = product.productMedia?.[0]?.mediaAsset?.secureUrl ?? product.images[0]
+                          return thumb ? (
+                            <img src={thumb} alt={product.name} className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            <Image className="h-5 w-5 text-muted-foreground" />
+                          )
+                        })()}
                       </div>
                       <div>
                         <p className="font-medium text-sm">{product.name}</p>

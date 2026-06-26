@@ -15,11 +15,25 @@ import type {
 
 export type { User, Product, ProductVariant, Category, Order, OrderItem, CartItem, Coupon, Notification, Review, Address, InventoryLog }
 
+export interface ProductMediaItem {
+  id: string
+  sortOrder: number
+  isThumbnail: boolean
+  mediaAsset: {
+    id: string
+    secureUrl: string
+    thumbnailUrl: string | null
+    resourceType: string
+    altText: string | null
+  }
+}
+
 // Extended types with relations
 export type ProductWithVariants = Product & {
   variants: ProductVariant[]
   category: Category
   _count?: { reviews: number; wishlists: number }
+  productMedia?: ProductMediaItem[]
 }
 
 export type ProductWithDetails = Product & {

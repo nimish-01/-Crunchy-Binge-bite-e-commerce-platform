@@ -55,11 +55,36 @@ enum UserRole {
 enum OrderStatus {
   PENDING
   CONFIRMED
+  PACKING
   PACKED
+  READY_TO_SHIP
+  SHIPPED
+  OUT_FOR_DELIVERY
   DISPATCHED
   DELIVERED
+  DELIVERY_FAILED
   CANCELLED
   REFUNDED
+  RETURN_REQUESTED
+  RETURN_APPROVED
+  RETURN_PICKED
+  RETURN_RECEIVED
+  REFUND_COMPLETED
+}
+
+enum ShipmentStatus {
+  CREATED
+  PACKING
+  READY_TO_SHIP
+  SHIPPED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  DELIVERY_FAILED
+  RETURN_INITIATED
+  RETURN_PICKED
+  RETURNED
+  CANCELLED
 }
 
 enum PaymentStatus {
@@ -121,7 +146,10 @@ enum ReturnStatus {
   PENDING
   APPROVED
   REJECTED
+  PICKED
+  RECEIVED
   COMPLETED
+  REFUNDED
 }
 
 // ─── Core Business Models ────────────────────────────────────────────────────
@@ -158,6 +186,11 @@ model User {
   subscriptions       Subscription[]
   inventoryLogs       InventoryLog[]
   returnRequests      ReturnRequest[]
+  wallet              Wallet?
+  wishlistCollections WishlistCollection[]
+  reviewHelpfuls      ReviewHelpful[]
+  shipmentsCreated    Shipment[]           @relation("ShipmentCreatedBy")
+  exchangeRequests    ExchangeRequest[]
 }
 
 model Address {
@@ -191,7 +224,8 @@ model Category {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  products Product[]
+  products    Product[]
+  promotions  PromotionCategory[]
 }
 
 model Product {
@@ -222,6 +256,8 @@ model Product {
   orderItems    OrderItem[]
   cartItems     CartItem[]
   subscriptions Subscription[]
+  productMedia  ProductMedia[]
+  promotions    PromotionProduct[]
 }
 
 model ProductVariant {
@@ -285,8 +321,9 @@ model Order {
   transactionId    String?
   razorpayOrderId  String?       @unique
   couponId       String?
-  pointsUsed     Int           @default(0)
-  gstRequired    Boolean       @default(false)
+  pointsUsed       Int           @default(0)
+  walletAmountUsed Float         @default(0)
+  gstRequired      Boolean       @default(false)
   giftMessage    String?
   notes          String?
   trackingNumber String?
@@ -294,11 +331,13 @@ model Order {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  user          User           @relation(fields: [userId], references: [id])
-  address       Address?       @relation(fields: [addressId], references: [id])
-  coupon        Coupon?        @relation(fields: [couponId], references: [id])
-  items         OrderItem[]
-  returnRequest ReturnRequest?
+  user              User              @relation(fields: [userId], references: [id])
+  address           Address?          @relation(fields: [addressId], references: [id])
+  coupon            Coupon?           @relation(fields: [couponId], references: [id])
+  items             OrderItem[]
+  returnRequest     ReturnRequest?
+  shipment          Shipment?
+  exchangeRequests  ExchangeRequest[]
 }
 
 model OrderItem {
@@ -359,21 +398,27 @@ model Review {
   title         String?
   body          String?  @db.Text
   images        String[] @default([])
+  videos        String[] @default([])
+  isAnonymous   Boolean  @default(false)
+  isFeatured    Boolean  @default(false)
   helpfulCount  Int      @default(0)
   status        String   @default("PENDING")
   adminResponse String?  @db.Text
   createdAt     DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  user         User            @relation(fields: [userId], references: [id])
+  product      Product         @relation(fields: [productId], references: [id])
+  helpfulVotes ReviewHelpful[]
 }
 
 model Wishlist {
   id        String   @id @default(cuid())
   userId    String
   productId String
-  variantId String?
-  createdAt DateTime @default(now())
+  variantId    String?
+  collectionId String?
+  collection   WishlistCollection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  createdAt    DateTime            @default(now())
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
@@ -475,14 +520,23 @@ model Banner {
 model DeliveryZone {
   id                    String   @id @default(cuid())
   name                  String
+  states                String[] @default([])
+  cities                String[] @default([])
   pincodes              String[]
   deliveryCharge        Float    @default(0)
   freeDeliveryThreshold Float    @default(499)
   estimatedDaysMin      Int      @default(3)
   estimatedDaysMax      Int      @default(5)
+  expressEnabled        Boolean  @default(false)
+  expressCharge         Float    @default(0)
+  expressDaysMin        Int      @default(1)
+  expressDaysMax        Int      @default(2)
   codEnabled            Boolean  @default(true)
+  codMinOrderValue      Float    @default(0)
   isActive              Boolean  @default(true)
+  sortOrder             Int      @default(0)
   createdAt             DateTime @default(now())
+  updatedAt             DateTime @default(now()) @updatedAt
 }
 
 // Stores context for in-flight Razorpay payments between create-order and verify.
@@ -499,17 +553,126 @@ model PendingPayment {
 }
 
 model ReturnRequest {
-  id          String       @id @default(cuid())
-  orderId     String       @unique
-  userId      String
-  reason      String
-  status      ReturnStatus @default(PENDING)
-  adminNotes  String?
-  requestedAt DateTime     @default(now())
-  resolvedAt  DateTime?
+  id                  String       @id @default(cuid())
+  orderId             String       @unique
+  userId              String
+  reason              String
+  reasonDetail        String?      @db.Text
+  status              ReturnStatus @default(PENDING)
+  adminNotes          String?      @db.Text
+  images              String[]     @default([])
+  preferredPickupDate DateTime?
+  pickupAddress       String?
+  refundAmount        Float?
+  refundMethod        String?
+  trackingNumber      String?
+  courierName         String?
+  requestedAt         DateTime     @default(now())
+  resolvedAt          DateTime?
 
   order Order @relation(fields: [orderId], references: [id])
   user  User  @relation(fields: [userId], references: [id])
+}
+
+// ─── Shipping & Fulfillment ──────────────────────────────────────────────────
+
+model Courier {
+  id              String   @id @default(cuid())
+  name            String
+  website         String?
+  trackingUrlPattern String? // e.g. "https://www.bluedart.com/track?id={tracking}"
+  supportPhone    String?
+  supportEmail    String?
+  logo            String?
+  isActive        Boolean  @default(true)
+  priority        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  shipments       Shipment[]
+  shippingRates   ShippingRate[]
+}
+
+model Shipment {
+  id                   String         @id @default(cuid())
+  shipmentNumber       String         @unique
+  orderId              String         @unique
+  courierId            String?
+  trackingNumber       String?
+  trackingUrl          String?
+  status               ShipmentStatus @default(CREATED)
+  weightGrams          Int?
+  lengthCm             Float?
+  widthCm              Float?
+  heightCm             Float?
+  packageType          String         @default("STANDARD")
+  dispatchedAt         DateTime?
+  estimatedDelivery    DateTime?
+  deliveredAt          DateTime?
+  shippingCost         Float          @default(0)
+  codCharges           Float          @default(0)
+  insurance            Float          @default(0)
+  notes                String?        @db.Text
+  labelUrl             String?
+  createdBy            String
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  order     Order           @relation(fields: [orderId], references: [id])
+  courier   Courier?        @relation(fields: [courierId], references: [id], onDelete: SetNull)
+  createdByUser User        @relation("ShipmentCreatedBy", fields: [createdBy], references: [id])
+  events    ShipmentEvent[]
+}
+
+model ShipmentEvent {
+  id          String   @id @default(cuid())
+  shipmentId  String
+  status      String
+  title       String
+  description String?
+  location    String?
+  isManual    Boolean  @default(true)
+  createdBy   String?
+  createdAt   DateTime @default(now())
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+}
+
+model ShippingRate {
+  id              String   @id @default(cuid())
+  name            String
+  type            String   @default("FLAT") // FLAT, WEIGHT_BASED, ORDER_VALUE_BASED
+  courierId       String?
+  minWeightGrams  Int?
+  maxWeightGrams  Int?
+  minOrderValue   Float?
+  maxOrderValue   Float?
+  price           Float    @default(0)
+  isCOD           Boolean  @default(false)
+  isExpress       Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  priority        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  courier Courier? @relation(fields: [courierId], references: [id], onDelete: SetNull)
+}
+
+model ExchangeRequest {
+  id                String   @id @default(cuid())
+  orderId           String
+  userId            String
+  originalVariantId String
+  requestedVariantId String
+  reason            String
+  status            String   @default("PENDING") // PENDING, APPROVED, REJECTED, SHIPPED, DELIVERED
+  adminNotes        String?  @db.Text
+  replacementShipmentId String?
+  requestedAt       DateTime @default(now())
+  resolvedAt        DateTime?
+
+  order   Order @relation(fields: [orderId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
 }
 
 model AuditLog {
@@ -543,7 +706,8 @@ model MediaAsset {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  heroSlides HeroSlide[]
+  heroSlides   HeroSlide[]
+  productMedia ProductMedia[]
 }
 
 model HeroSlide {
@@ -561,6 +725,20 @@ model HeroSlide {
   endsAt      DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+}
+
+model ProductMedia {
+  id           String     @id @default(cuid())
+  productId    String
+  mediaAssetId String
+  sortOrder    Int        @default(0)
+  isThumbnail  Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, mediaAssetId])
 }
 
 model HomepageCMS {
@@ -612,6 +790,132 @@ model HomepageQuote {
   updatedAt DateTime @updatedAt
 }
 
+// ─── Promotions & Campaign Engine ────────────────────────────────────────────
+
+enum PromotionType {
+  ANNOUNCEMENT_BAR
+  HOMEPAGE_BANNER
+  CATEGORY_BANNER
+  PRODUCT_BANNER
+  POPUP
+  FLOATING_BUTTON
+  COUNTDOWN_CAMPAIGN
+}
+
+model Promotion {
+  id   String        @id @default(cuid())
+  name String
+  type PromotionType
+
+  // Scheduling & Status
+  isActive Boolean   @default(false)
+  priority Int       @default(0)
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  // Audience & display locations
+  audienceTarget String   @default("ALL_VISITORS")
+  displayPages   String[] @default([])
+
+  // All type-specific config stored as flexible JSON
+  config Json @default("{}")
+
+  // Analytics counters (denormalized for fast reads)
+  impressions Int @default(0)
+  clicks      Int @default(0)
+
+  // Relations
+  categories PromotionCategory[]
+  products   PromotionProduct[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PromotionCategory {
+  promotionId String
+  categoryId  String
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([promotionId, categoryId])
+}
+
+model PromotionProduct {
+  promotionId String
+  productId   String
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([promotionId, productId])
+}
+
+model WishlistCollection {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  slug       String
+  isPublic   Boolean  @default(false)
+  shareToken String   @unique @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items Wishlist[]
+
+  @@unique([userId, slug])
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id          String   @id @default(cuid())
+  walletId    String
+  type        String
+  amount      Float
+  description String
+  refType     String?
+  refId       String?
+  createdAt   DateTime @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+model ReviewHelpful {
+  id       String  @id @default(cuid())
+  reviewId String
+  userId   String
+  helpful  Boolean
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+}
+
+model LoyaltySettings {
+  id                     String   @id @default("singleton")
+  pointsPerRupee         Float    @default(1)
+  redemptionRate         Float    @default(0.5)
+  maxRedemptionPercent   Float    @default(20)
+  reviewPoints           Int      @default(50)
+  referralReferrerPoints Int      @default(100)
+  referralRefereePoints  Int      @default(50)
+  birthdayPoints         Int      @default(200)
+  updatedAt              DateTime @updatedAt
+}
+
 model SiteSettings {
   id              String   @id @default("singleton")
   // Company
@@ -634,6 +938,12 @@ model SiteSettings {
   gstNumber       String   @default("")
   businessAddress String   @default("") @db.Text
   googleMapsLink  String   @default("")
+  // Delivery Celebration Page
+  deliveryHeadline    String  @default("Your order has been delivered! 🎉")
+  deliveryMessage     String  @default("We hope you love your Binge Bite snacks. Come back for more goodness!") @db.Text
+  deliveryAnimation   String  @default("CONFETTI")
+  deliveryShowRating  Boolean @default(true)
+  deliveryShowReorder Boolean @default(true)
 
   updatedAt DateTime @updatedAt
 }
