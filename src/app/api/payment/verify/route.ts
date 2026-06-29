@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { verifyRazorpaySignature } from "@/lib/razorpay"
 import { createOrderFromCapturedPayment } from "@/lib/payment-order"
+import { getCheckoutErrorResponse } from "@/lib/services/checkout"
 
 const schema = z.object({
   razorpayOrderId: z.string().min(1),
@@ -81,9 +82,9 @@ export async function POST(req: NextRequest) {
       message: "Payment verified. Order confirmed.",
     })
   } catch (error) {
-    if (error instanceof Error) {
-      const isKnown = error.message.includes("no longer available") || error.message.includes("insufficient stock")
-      if (isKnown) return NextResponse.json({ success: false, error: error.message }, { status: 422 })
+    const known = getCheckoutErrorResponse(error)
+    if (known) {
+      return NextResponse.json({ success: false, error: known.message }, { status: known.status })
     }
     console.error("[POST /api/payment/verify]", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })

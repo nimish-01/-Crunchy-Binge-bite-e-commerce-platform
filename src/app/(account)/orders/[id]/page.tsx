@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { formatPrice, formatDate, formatDateTime } from "@/lib/utils"
-import { ArrowLeft, MapPin, Package, CreditCard, Hash, RotateCcw, Truck, ExternalLink } from "lucide-react"
+import { ArrowLeft, MapPin, Package, CreditCard, Hash, RotateCcw, Truck, ExternalLink, FileText, Star, RefreshCw, Headphones, ArrowRight } from "lucide-react"
 import { CancelOrderButton } from "./cancel-order-button"
 import { ReturnRequestButton } from "./return-request-button"
+import { BuyAgainButton } from "./buy-again-button"
 import { ShipmentTimeline } from "@/components/shipping/shipment-timeline"
 
 const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "brand"> = {
@@ -60,8 +61,17 @@ export default async function OrderDetailPage({ params }: Props) {
     returnDaysLeft = Math.ceil((deadline.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
   }
   const canReturn = returnDaysLeft > 0
+  const canExchange = canReturn // same window, no existing exchange request
 
   const isDelivered = order.status === "DELIVERED"
+  const canReview = isDelivered
+
+  const buyAgainItems = order.items.map((i) => ({
+    productId: i.productId,
+    variantId: i.variantId,
+    quantity: i.quantity,
+    productName: i.product.name,
+  }))
 
   return (
     <div className="space-y-6">
@@ -89,6 +99,12 @@ export default async function OrderDetailPage({ params }: Props) {
         <div className="flex gap-2 flex-wrap">
           {canCancel && <CancelOrderButton orderId={order.id} />}
           {canReturn && <ReturnRequestButton orderId={order.id} daysLeft={returnDaysLeft} />}
+          {isDelivered && <BuyAgainButton items={buyAgainItems} />}
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/orders/${order.id}/invoice`} target="_blank">
+              <FileText className="h-4 w-4 mr-1.5" /> Invoice
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -260,6 +276,79 @@ export default async function OrderDetailPage({ params }: Props) {
           )}
         </div>
       )}
+
+      {/* Exchange eligibility */}
+      {canExchange && !order.returnRequest && (
+        <div className="rounded-xl border border-border/50 bg-card p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium text-sm">Exchange</span>
+            </div>
+            <span className="text-xs text-muted-foreground">{returnDaysLeft}d left</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Eligible for exchange within the return window. Contact support to request.
+          </p>
+          <Link
+            href="/contact"
+            className="inline-flex items-center gap-1.5 mt-3 text-xs text-brand-400 hover:underline"
+          >
+            Request exchange <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+      )}
+
+      {/* Review products */}
+      {canReview && (
+        <div className="rounded-xl border border-border/50 bg-card p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Star className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-sm">Rate Your Order</span>
+          </div>
+          <div className="space-y-2">
+            {order.items.map((item) => (
+              <div key={item.id} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 min-w-0">
+                  {item.product.images?.[0] && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.product.images[0]}
+                      alt={item.product.name}
+                      className="h-8 w-8 rounded object-cover shrink-0"
+                    />
+                  )}
+                  <span className="truncate text-xs">{item.product.name}</span>
+                </div>
+                <Button variant="outline" size="sm" className="h-7 text-xs shrink-0" asChild>
+                  <Link href={`/products/${item.product.slug}?review=1`}>
+                    Write a Review
+                  </Link>
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Customer Support */}
+      <div className="rounded-xl border border-border/50 bg-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Headphones className="h-4 w-4 text-muted-foreground" />
+          <span className="font-medium text-sm">Need Help?</span>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Have a question about your order? Our support team is here to help.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/contact">Contact Support</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/faq" className="text-muted-foreground">FAQ</Link>
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

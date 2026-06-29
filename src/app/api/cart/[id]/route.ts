@@ -12,6 +12,29 @@ const patchSchema = z.object({
 
 type Params = { params: Promise<{ id: string }> }
 
+async function findCart(where: { userId: string } | { sessionId: string }) {
+  return prisma.cart.findUnique({
+    where,
+    select: {
+      id: true,
+      sessionId: true,
+      items: {
+        orderBy: { createdAt: "asc" as const },
+        select: {
+          id: true,
+          quantity: true,
+          variantId: true,
+          productId: true,
+          product: { select: { id: true, name: true, slug: true, images: true } },
+          variant: {
+            select: { id: true, weight: true, price: true, mrp: true, stock: true, sku: true },
+          },
+        },
+      },
+    },
+  })
+}
+
 // PATCH /api/cart/[id] — update quantity of a specific cart item
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
@@ -57,8 +80,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     await prisma.cartItem.update({ where: { id: itemId }, data: { quantity } })
+    const cart = userId ? await findCart({ userId }) : await findCart({ sessionId: guestSid! })
 
-    return NextResponse.json({ success: true, message: "Cart updated" })
+    return NextResponse.json({ success: true, data: cart, message: "Cart updated" })
   } catch (error) {
     console.error("[PATCH /api/cart/[id]]", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
@@ -92,8 +116,9 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     }
 
     await prisma.cartItem.delete({ where: { id: itemId } })
+    const cart = userId ? await findCart({ userId }) : await findCart({ sessionId: guestSid! })
 
-    return NextResponse.json({ success: true, message: "Item removed from cart" })
+    return NextResponse.json({ success: true, data: cart, message: "Item removed from cart" })
   } catch (error) {
     console.error("[DELETE /api/cart/[id]]", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })

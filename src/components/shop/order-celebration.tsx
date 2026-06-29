@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { ShoppingBag, RefreshCw, Heart, CheckCircle2, Package, MapPin, CreditCard } from "lucide-react"
+import { ShoppingBag, Heart, CheckCircle2, Package, MapPin, CreditCard, FileText, Share2, Headphones, Star, Gift } from "lucide-react"
 import { formatPrice } from "@/lib/utils"
 
 interface OrderItem {
@@ -26,20 +26,46 @@ interface OrderAddress {
 }
 
 interface Props {
-  orderNumber:   string
-  orderId:       string
-  headline:      string
-  message:       string
-  animation:     string
-  showReorder:   boolean
-  total:         number
-  subtotal:      number
+  orderNumber:    string
+  orderId:        string
+  headline:       string
+  message:        string
+  animation:      string
+  showReorder:    boolean
+  total:          number
+  subtotal:       number
   discountAmount: number
   deliveryCharge: number
   paymentMethod?: string | null
-  items:         OrderItem[]
-  address?:      OrderAddress | null
+  items:          OrderItem[]
+  address?:       OrderAddress | null
   estimatedDays?: number
+  loyaltyPoints?: number | null
+  pointsEarned?:  number | null
+}
+
+// ─── Success Chime (Web Audio API) ───────────────────────────────────────────
+
+function playSuccessChime() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    // Three ascending notes: C5 → E5 → G5
+    const notes = [523.25, 659.25, 783.99]
+    notes.forEach((freq, i) => {
+      const osc  = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type      = "sine"
+      osc.frequency.value = freq
+      const start = ctx.currentTime + i * 0.18
+      gain.gain.setValueAtTime(0, start)
+      gain.gain.linearRampToValueAtTime(0.25, start + 0.04)
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.5)
+      osc.start(start)
+      osc.stop(start + 0.55)
+    })
+  } catch { /* autoplay blocked — silent fallback */ }
 }
 
 // ─── Canvas Confetti ──────────────────────────────────────────────────────────
@@ -215,12 +241,34 @@ export default function OrderCelebration({
   animation, showReorder,
   total, subtotal, discountAmount, deliveryCharge,
   paymentMethod, items, address, estimatedDays = 5,
+  loyaltyPoints, pointsEarned,
 }: Props) {
   const [showBanner, setShowBanner] = useState(false)
+  const [shareSuccess, setShareSuccess] = useState(false)
   const confettiRef = useConfetti(animation === "CONFETTI")
 
+  async function handleShare() {
+    const shareData = {
+      title: "My Binge Bite Order",
+      text: `I just ordered from Binge Bite! Order #${orderNumber}`,
+      url: typeof window !== "undefined" ? `${window.location.origin}/orders/${orderId}` : "",
+    }
+    try {
+      if (navigator.share && navigator.canShare?.(shareData)) {
+        await navigator.share(shareData)
+      } else {
+        await navigator.clipboard.writeText(shareData.url)
+        setShareSuccess(true)
+        setTimeout(() => setShareSuccess(false), 2500)
+      }
+    } catch { /* user cancelled */ }
+  }
+
   useEffect(() => {
-    const t = setTimeout(() => setShowBanner(true), 80)
+    const t = setTimeout(() => {
+      setShowBanner(true)
+      playSuccessChime()
+    }, 80)
     return () => clearTimeout(t)
   }, [])
 
@@ -376,28 +424,91 @@ export default function OrderCelebration({
         </div>
       </div>
 
+      {/* ── Loyalty Points ── */}
+      {(loyaltyPoints != null || pointsEarned != null) && (
+        <div
+          className={`
+            rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 transition-all duration-700 delay-400
+            ${showBanner ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}
+          `}
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-amber-500/15 flex items-center justify-center shrink-0">
+              <Star className="h-5 w-5 text-amber-400" />
+            </div>
+            <div className="flex-1">
+              {pointsEarned != null && pointsEarned > 0 ? (
+                <>
+                  <p className="text-sm font-semibold">
+                    +{pointsEarned} loyalty points earned
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {loyaltyPoints != null
+                      ? `Your new total: ${loyaltyPoints} points`
+                      : "Credited to your account"}
+                  </p>
+                </>
+              ) : loyaltyPoints != null ? (
+                <>
+                  <p className="text-sm font-semibold">{loyaltyPoints} loyalty points</p>
+                  <p className="text-xs text-muted-foreground">Redeem on your next order</p>
+                </>
+              ) : null}
+            </div>
+            <Link
+              href="/profile/loyalty"
+              className="text-xs text-amber-400 hover:underline shrink-0"
+            >
+              View
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* ── CTAs ── */}
       <div
         className={`
-          flex flex-wrap gap-3 transition-all duration-700 delay-500
+          space-y-3 transition-all duration-700 delay-500
           ${showBanner ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}
         `}
       >
-        <Link
-          href={`/orders/${orderId}`}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500 text-white font-medium hover:bg-brand-600 transition-colors"
-        >
-          <Package className="h-4 w-4" />
-          Track Order
-        </Link>
+        {/* Primary actions */}
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={`/orders/${orderId}`}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500 text-white font-medium hover:bg-brand-600 transition-colors text-sm"
+          >
+            <Package className="h-4 w-4" />
+            Track Order
+          </Link>
+          <Link
+            href={`/orders/${orderId}/invoice`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border hover:bg-accent transition-colors font-medium text-sm"
+          >
+            <FileText className="h-4 w-4" />
+            Invoice
+          </Link>
+          <button
+            type="button"
+            onClick={handleShare}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border hover:bg-accent transition-colors font-medium text-sm"
+          >
+            <Share2 className="h-4 w-4" />
+            {shareSuccess ? "Link copied!" : "Share"}
+          </button>
+        </div>
+
+        {/* Secondary actions */}
         {showReorder && (
-          <>
+          <div className="flex flex-wrap gap-3">
             <Link
               href="/products"
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border hover:bg-accent transition-colors font-medium text-sm"
             >
               <ShoppingBag className="h-4 w-4" />
-              Shop More
+              Continue Shopping
             </Link>
             <Link
               href="/profile/wishlist"
@@ -406,8 +517,26 @@ export default function OrderCelebration({
               <Heart className="h-4 w-4" />
               Wishlist
             </Link>
-          </>
+          </div>
         )}
+
+        {/* Help + Referral */}
+        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
+          <Link
+            href="/contact"
+            className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+          >
+            <Headphones className="h-3.5 w-3.5" />
+            Need help?
+          </Link>
+          <Link
+            href="/profile/referrals"
+            className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+          >
+            <Gift className="h-3.5 w-3.5" />
+            Refer a friend · Earn rewards
+          </Link>
+        </div>
       </div>
     </>
   )

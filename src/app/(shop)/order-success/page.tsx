@@ -15,7 +15,7 @@ export default async function OrderSuccessPage({ searchParams }: Props) {
   const session = await auth()
   if (!session?.user?.id) redirect(`/login?callbackUrl=/order-success?order=${orderNumber}`)
 
-  const [order, settings] = await Promise.all([
+  const [order, settings, user] = await Promise.all([
     prisma.order.findFirst({
       where: { orderNumber, userId: session.user.id },
       include: {
@@ -29,13 +29,20 @@ export default async function OrderSuccessPage({ searchParams }: Props) {
       },
     }),
     prisma.siteSettings.findUnique({ where: { id: "singleton" } }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { loyaltyPoints: true },
+    }),
   ])
 
   if (!order) redirect("/orders")
 
+  // Estimate points earned: 1 point per ₹10 spent (matches typical rule)
+  const pointsEarned = Math.floor(Number(order.total) / 10)
+
   const config = {
-    headline:    settings?.deliveryHeadline    ?? "Order placed successfully! 🎉",
-    message:     settings?.deliveryMessage     ?? "Thank you! We're preparing your order right away.",
+    headline:    "Order placed successfully!",
+    message:     "Thank you! We're preparing your order right away.",
     animation:   settings?.deliveryAnimation   ?? "CONFETTI",
     showReorder: settings?.deliveryShowReorder ?? true,
   }
@@ -78,6 +85,8 @@ export default async function OrderSuccessPage({ searchParams }: Props) {
         paymentMethod={order.paymentMethod}
         items={items}
         address={address}
+        loyaltyPoints={user?.loyaltyPoints ?? null}
+        pointsEarned={pointsEarned}
       />
     </div>
   )

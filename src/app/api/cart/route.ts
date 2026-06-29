@@ -108,13 +108,6 @@ export async function POST(req: NextRequest) {
     if (!variant) {
       return NextResponse.json({ success: false, error: "Product not available" }, { status: 404 })
     }
-    if (quantity > 0 && variant.stock < quantity) {
-      return NextResponse.json(
-        { success: false, error: `Only ${variant.stock} items available in stock` },
-        { status: 400 }
-      )
-    }
-
     const userId = session?.user?.id ?? null
     let cartId: string
     let newGuestSid: string | null = null
@@ -142,10 +135,23 @@ export async function POST(req: NextRequest) {
     if (quantity === 0) {
       await prisma.cartItem.deleteMany({ where: { cartId, variantId } })
     } else {
+      const existing = await prisma.cartItem.findUnique({
+        where: { cartId_variantId: { cartId, variantId } },
+        select: { quantity: true },
+      })
+      const nextQuantity = Math.min(99, (existing?.quantity ?? 0) + quantity)
+
+      if (variant.stock < nextQuantity) {
+        return NextResponse.json(
+          { success: false, error: `Only ${variant.stock} items available in stock` },
+          { status: 400 }
+        )
+      }
+
       await prisma.cartItem.upsert({
         where: { cartId_variantId: { cartId, variantId } },
-        create: { cartId, productId, variantId, quantity },
-        update: { quantity },
+        create: { cartId, productId, variantId, quantity: nextQuantity },
+        update: { quantity: nextQuantity },
       })
     }
 

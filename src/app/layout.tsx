@@ -31,7 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Synchronously apply saved theme before first paint to prevent flash */}
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('bb-theme');document.documentElement.classList.add(['dark','light','floral'].includes(t)?t:'dark')}catch(e){document.documentElement.classList.add('dark')}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('bb-theme');document.documentElement.classList.add(['dark','light','foodie'].includes(t)?t:'dark')}catch(e){document.documentElement.classList.add('dark')}` }} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
         <SessionProvider session={session}>

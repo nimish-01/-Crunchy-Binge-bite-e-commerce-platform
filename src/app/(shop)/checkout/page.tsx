@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useForm } from "react-hook-form"
@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useCart } from "@/contexts/cart-context"
 import { formatPrice } from "@/lib/utils"
 import { addressSchema, type AddressInput } from "@/lib/validations/order"
@@ -72,13 +74,17 @@ const PAYMENT_METHODS = [
 export default function CheckoutPage() {
   const router = useRouter()
   const { data: session } = useSession()
-  const { items, subtotal, total, discountAmount, deliveryCharge, coupon, applyCoupon, removeCoupon, clearCart } = useCart()
+  const { items, subtotal, total, discountAmount, deliveryCharge, coupon, applyCoupon, removeCoupon, clearCart, isLoading: cartLoading } = useCart()
 
   const [paymentMethod, setPaymentMethod] = useState("razorpay")
   const [placing, setPlacing] = useState(false)
+  const submitLockRef = useRef(false)
+  // Prevents the empty-cart redirect from overriding a successful post-payment navigation
+  const navigatedSuccessRef = useRef(false)
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
   const [loadingAddresses, setLoadingAddresses] = useState(true)
   const [selectedAddress, setSelectedAddress] = useState<string>("new")
+  const [checkoutError, setCheckoutError] = useState("")
   const [couponInput, setCouponInput] = useState("")
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState("")
@@ -104,6 +110,12 @@ export default function CheckoutPage() {
       })
       .finally(() => setLoadingAddresses(false))
   }, [session?.user?.id])
+
+  useEffect(() => {
+    if (!cartLoading && items.length === 0 && !placing && !navigatedSuccessRef.current) {
+      router.replace("/products")
+    }
+  }, [cartLoading, items.length, placing, router])
 
   // ─── Fetch coupon suggestions whenever subtotal changes ──────────────────
   useEffect(() => {
@@ -140,6 +152,7 @@ export default function CheckoutPage() {
 
   // ─── Core order placement ─────────────────────────────────────────────────
   const processOrder = useCallback(async (addressId: string) => {
+    setCheckoutError("")
     const couponCode = coupon?.code
 
     if (paymentMethod === "cod") {
@@ -150,6 +163,7 @@ export default function CheckoutPage() {
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
+      navigatedSuccessRef.current = true
       clearCart()
       router.push(`/order-success?order=${data.data.order.orderNumber}`)
       return
@@ -189,6 +203,7 @@ export default function CheckoutPage() {
             })
             const verifyData = await verifyRes.json()
             if (!verifyData.success) throw new Error(verifyData.error)
+            navigatedSuccessRef.current = true
             clearCart()
             router.push(`/order-success?order=${verifyData.data.orderNumber}`)
             resolve()
@@ -208,17 +223,25 @@ export default function CheckoutPage() {
 
   // ─── Submit handlers ──────────────────────────────────────────────────────
   async function onSubmitSavedAddress() {
+    if (submitLockRef.current || placing) return
+    submitLockRef.current = true
     setPlacing(true)
+    setCheckoutError("")
     try {
       await processOrder(selectedAddress.replace("saved:", ""))
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Something went wrong. Please try again.")
+      setCheckoutError(e instanceof Error ? e.message : "Something went wrong. Please try again.")
+    } finally {
+      submitLockRef.current = false
       setPlacing(false)
     }
   }
 
   async function onSubmitNewAddress(data: AddressInput) {
+    if (submitLockRef.current || placing) return
+    submitLockRef.current = true
     setPlacing(true)
+    setCheckoutError("")
     try {
       const saveRes = await fetch("/api/addresses", {
         method: "POST",
@@ -229,19 +252,45 @@ export default function CheckoutPage() {
       if (!saveData.success) throw new Error(saveData.error)
       await processOrder(saveData.data.address.id)
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Something went wrong. Please try again.")
+      setCheckoutError(e instanceof Error ? e.message : "Something went wrong. Please try again.")
+    } finally {
+      submitLockRef.current = false
       setPlacing(false)
     }
   }
 
-  if (items.length === 0) { router.push("/products"); return null }
+  if (cartLoading || items.length === 0) {
+    return (
+      <div className="container py-6 sm:py-10">
+        <div className="mb-8 space-y-2">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-64 max-w-full" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
+          <div className="lg:col-span-3 space-y-4">
+            <Skeleton className="h-48 rounded-xl" />
+            <Skeleton className="h-40 rounded-xl" />
+          </div>
+          <div className="lg:col-span-2">
+            <Skeleton className="h-80 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const isUsingSaved = selectedAddress !== "new"
 
   return (
-    <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+    <div className="container py-6 sm:py-10 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-10">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Checkout</h1>
+      {checkoutError && (
+        <Alert variant="destructive" className="mb-5">
+          <AlertTitle>Checkout needs attention</AlertTitle>
+          <AlertDescription>{checkoutError}</AlertDescription>
+        </Alert>
+      )}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
 
         {/* ── Left column ── */}
         <div className="lg:col-span-3 space-y-6">
@@ -299,7 +348,7 @@ export default function CheckoutPage() {
 
                   {selectedAddress === "new" && (
                     <form id="checkout-form" onSubmit={handleSubmit(onSubmitNewAddress)}>
-                      <div className="grid grid-cols-2 gap-4 pt-1">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                         <div className="col-span-2 space-y-1.5">
                           <Label>Full Name</Label>
                           <Input placeholder={session?.user?.name ?? "Priya Sharma"} {...register("name")} />
@@ -536,19 +585,21 @@ export default function CheckoutPage() {
               </div>
 
               {/* Pay button */}
+              <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0">
               {isUsingSaved ? (
-                <Button variant="brand" className="w-full" size="lg" onClick={onSubmitSavedAddress} disabled={placing || loadingAddresses}>
+                <Button variant="brand" className="w-full min-h-12" size="lg" onClick={onSubmitSavedAddress} disabled={placing || loadingAddresses}>
                   {placing
                     ? <><Loader2 className="h-4 w-4 animate-spin mr-1" />Processing…</>
                     : paymentMethod === "cod" ? `Place Order • ${formatPrice(total)}` : `Pay ${formatPrice(total)}`}
                 </Button>
               ) : (
-                <Button variant="brand" className="w-full" size="lg" type="submit" form="checkout-form" disabled={placing}>
+                <Button variant="brand" className="w-full min-h-12" size="lg" type="submit" form="checkout-form" disabled={placing}>
                   {placing
                     ? <><Loader2 className="h-4 w-4 animate-spin mr-1" />Processing…</>
                     : paymentMethod === "cod" ? `Place Order • ${formatPrice(total)}` : `Pay ${formatPrice(total)}`}
                 </Button>
               )}
+              </div>
 
               {paymentMethod === "razorpay" && (
                 <p className="text-xs text-muted-foreground text-center">🔒 Secured by Razorpay · PCI-DSS compliant</p>

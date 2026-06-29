@@ -1,6 +1,7 @@
 "use client"
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from "react"
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from "react"
+import { useSession } from "next-auth/react"
 import type { CartItemWithDetails, CartState, Coupon } from "@/types"
 
 type CartAction =
@@ -77,10 +78,12 @@ function reducer(state: CartState, action: CartAction): CartState {
 const CartContext = createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { status: sessionStatus } = useSession()
   const [state, dispatch] = useReducer(reducer, {
     items: [], subtotal: 0, total: 0, discountAmount: 0, deliveryCharge: 0, coupon: null, itemCount: 0,
   })
-  const [isLoading, setIsLoading] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(true)
+  const prevSessionStatus = useRef<string>("loading")
 
   // Load cart on mount
   useEffect(() => {
@@ -88,14 +91,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       .then((r) => r.json())
       .then((data) => { if (data.success) dispatch({ type: "SET_CART", payload: data.data?.items ?? [] }) })
       .catch(() => {})
+      .finally(() => setIsLoading(false))
   }, [])
+
+  // When user logs in, merge any guest cart into the user cart
+  useEffect(() => {
+    const prev = prevSessionStatus.current
+    prevSessionStatus.current = sessionStatus
+    if (prev !== "authenticated" && sessionStatus === "authenticated") {
+      setIsLoading(true)
+      fetch("/api/cart/merge", { method: "POST" })
+        .then((r) => r.json())
+        .then((data) => { if (data.success) dispatch({ type: "SET_CART", payload: data.data?.items ?? [] }) })
+        .catch(() => {})
+        .finally(() => setIsLoading(false))
+    }
+  }, [sessionStatus])
 
   const addItem = useCallback(async (productId: string, variantId: string, quantity = 1) => {
     setIsLoading(true)
     try {
       const r = await fetch("/api/cart", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId, variantId, quantity }) })
       const data = await r.json()
-      if (data.success) dispatch({ type: "SET_CART", payload: data.data.items })
+      if (!data.success) throw new Error(data.error ?? "Unable to update cart")
+      dispatch({ type: "SET_CART", payload: data.data?.items ?? [] })
     } finally {
       setIsLoading(false)
     }
@@ -104,8 +123,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const removeItem = useCallback(async (itemId: string) => {
     setIsLoading(true)
     try {
-      await fetch(`/api/cart/${itemId}`, { method: "DELETE" })
-      dispatch({ type: "REMOVE_ITEM", payload: itemId })
+      const r = await fetch(`/api/cart/${itemId}`, { method: "DELETE" })
+      const data = await r.json()
+      if (!data.success) throw new Error(data.error ?? "Unable to remove item")
+      dispatch({ type: "SET_CART", payload: data.data?.items ?? [] })
     } finally {
       setIsLoading(false)
     }
@@ -115,8 +136,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (quantity <= 0) { removeItem(itemId); return }
     setIsLoading(true)
     try {
-      await fetch(`/api/cart/${itemId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quantity }) })
-      dispatch({ type: "UPDATE_QTY", payload: { itemId, quantity } })
+      const r = await fetch(`/api/cart/${itemId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quantity }) })
+      const data = await r.json()
+      if (!data.success) throw new Error(data.error ?? "Unable to update quantity")
+      dispatch({ type: "SET_CART", payload: data.data?.items ?? [] })
     } finally {
       setIsLoading(false)
     }
