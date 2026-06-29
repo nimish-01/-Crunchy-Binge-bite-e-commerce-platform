@@ -1,8 +1,5 @@
 import { PrismaClient } from "@prisma/client"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const globalForPrisma = globalThis as unknown as { prisma: any }
-
 function buildPrisma() {
   const client = new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
@@ -34,6 +31,11 @@ function buildPrisma() {
   })
 }
 
-export const prisma = globalForPrisma.prisma ?? buildPrisma()
+type PrismaClientExtended = ReturnType<typeof buildPrisma>
+
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClientExtended }
+
+export const prisma: PrismaClientExtended =
+  globalForPrisma.prisma ?? buildPrisma()
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma

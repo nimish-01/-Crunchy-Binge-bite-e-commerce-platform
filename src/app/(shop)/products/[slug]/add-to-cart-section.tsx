@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Check, Loader2, Minus, Plus, ShoppingCart, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,6 +19,8 @@ export default function AddToCartSection({ product }: Props) {
   const { addItem } = useCart()
   const { toast } = useToast()
   const router = useRouter()
+  const pathname = usePathname()
+  const { status: sessionStatus } = useSession()
   const [selectedVariantId, setSelectedVariantId] = useState(product.variants[0]?.id)
   const [quantity, setQuantity] = useState(1)
   const [pendingAction, setPendingAction] = useState<"cart" | "buy" | null>(null)
@@ -36,6 +39,10 @@ export default function AddToCartSection({ product }: Props) {
 
   async function handleAddToCart(action: "cart" | "buy" = "cart") {
     if (isOutOfStock || isSubmitting) return
+    if (sessionStatus === "unauthenticated") {
+      router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`)
+      return
+    }
     setPendingAction(action)
     try {
       await addItem(product.id, selectedVariant.id, quantity)

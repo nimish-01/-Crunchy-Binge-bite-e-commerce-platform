@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
+import { logoutAction } from "@/lib/actions/auth"
 import {
   ShoppingCart, Search, Bell, User, Menu, LogOut,
   Package, Settings, ChevronDown, X, Heart, Wallet,
@@ -307,7 +308,7 @@ export default function Header() {
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={() => signOut({ callbackUrl: "/" })}
+                      onClick={() => logoutAction()}
                       className="text-destructive focus:text-destructive"
                     >
                       <LogOut className="h-4 w-4" />Sign Out
@@ -425,7 +426,7 @@ export default function Header() {
                 {session && (
                   <div className="px-5 py-4 border-t border-border/50">
                     <button
-                      onClick={() => signOut({ callbackUrl: "/" })}
+                      onClick={() => logoutAction()}
                       className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors w-full"
                     >
                       <LogOut className="h-4 w-4" />

@@ -1,5 +1,8 @@
-import { auth } from "@/auth"
+import NextAuth from "next-auth"
+import { authConfig } from "@/auth.config"
 import { NextResponse } from "next/server"
+
+const { auth } = NextAuth(authConfig)
 
 const ADMIN_LOGIN = "/admin/login"
 const INVENTORY_LOGIN = "/inventory/login"
@@ -65,10 +68,15 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/inventory/:path*",
+    "/profile",
     "/profile/:path*",
+    "/orders",
     "/orders/:path*",
+    "/wishlist",
     "/wishlist/:path*",
+    "/notifications",
     "/notifications/:path*",
+    "/checkout",
     "/checkout/:path*",
   ],
 }

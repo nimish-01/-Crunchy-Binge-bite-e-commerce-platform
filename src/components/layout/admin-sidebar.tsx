@@ -10,7 +10,8 @@ import {
   Truck, BoxIcon, MapPin, RefreshCw,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
+import { logoutAdminAction } from "@/lib/actions/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getInitials } from "@/lib/utils"
 
@@ -188,7 +189,7 @@ export default function AdminSidebar() {
           </div>
         </div>
         <button
-          onClick={() => signOut({ callbackUrl: "/admin/login" })}
+          onClick={() => logoutAdminAction()}
           className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-colors"
         >
           <LogOut className="h-3.5 w-3.5" />
