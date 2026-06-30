@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { requireAdmin, isAdminSession } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
+import { triggerReturnApproved, triggerRefundCompleted } from "@/lib/notifications/triggers"
 
 const schema = z.object({
   status: z.enum(["APPROVED", "REJECTED", "COMPLETED"]),
@@ -42,6 +43,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         order: { select: { orderNumber: true } },
       },
     })
+
+    if (parsed.data.status === "APPROVED") {
+      triggerReturnApproved(updated.userId, updated.orderId, updated.order.orderNumber, updated.user.email ?? "", updated.user.name ?? "Customer").catch(() => {})
+    }
+    if (parsed.data.status === "COMPLETED") {
+      triggerRefundCompleted(updated.userId, updated.orderId, updated.order.orderNumber, updated.refundAmount ?? 0, updated.user.email ?? "", updated.user.name ?? "Customer").catch(() => {})
+    }
 
     return NextResponse.json({ success: true, data: { returnRequest: updated } })
   } catch (error) {

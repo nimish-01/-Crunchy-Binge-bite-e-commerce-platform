@@ -2,7 +2,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { Wallet, TrendingUp, TrendingDown } from "lucide-react"
 
-export const metadata = { title: "My Wallet — Binge Bite" }
+export const metadata = { title: "My Wallet — Crunchy Bingebite" }
 
 export default async function WalletPage() {
   const session = await auth()

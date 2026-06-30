@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { verifyRazorpaySignature } from "@/lib/razorpay"
 import { createOrderFromCapturedPayment } from "@/lib/payment-order"
 import { getCheckoutErrorResponse } from "@/lib/services/checkout"
+import { triggerPaymentSuccess } from "@/lib/notifications/triggers"
 
 const schema = z.object({
   razorpayOrderId: z.string().min(1),
@@ -75,6 +76,9 @@ export async function POST(req: NextRequest) {
       paymentMethod,
       expectedAmountPaise: pendingPayment?.expectedAmountPaise ?? null,
     })
+
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } }).catch(() => null)
+    triggerPaymentSuccess(userId, order.id, order.orderNumber, order.total, user?.email ?? "", user?.name ?? "Customer").catch(() => {})
 
     return NextResponse.json({
       success: true,

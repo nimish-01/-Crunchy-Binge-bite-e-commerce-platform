@@ -18,7 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-lg relative z-10">
           <span className="text-brand-500 text-2xl">🌾</span>
-          <span>Binge Bite</span>
+          <span>Crunchy Bingebite</span>
         </Link>
 
         {/* Center content */}
@@ -62,7 +62,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="lg:hidden p-5 border-b border-border/40">
           <Link href="/" className="flex items-center gap-2 font-bold text-lg">
             <span className="text-brand-500">🌾</span>
-            Binge Bite
+            Crunchy Bingebite
           </Link>
         </div>
 

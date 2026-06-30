@@ -4,7 +4,7 @@ import { Heart } from "lucide-react"
 import Link from "next/link"
 import WishlistPageClient from "@/components/shop/wishlist-page-client"
 
-export const metadata = { title: "My Wishlist — Binge Bite" }
+export const metadata = { title: "My Wishlist — Crunchy Bingebite" }
 
 export default async function WishlistPage() {
   const session = await auth()

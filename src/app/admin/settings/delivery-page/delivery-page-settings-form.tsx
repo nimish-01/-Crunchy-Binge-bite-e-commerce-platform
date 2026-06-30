@@ -91,7 +91,7 @@ export default function DeliveryPageSettingsForm({ settings }: Props) {
           rows={3}
           value={form.deliveryMessage}
           onChange={(e) => update("deliveryMessage", e.target.value)}
-          placeholder="We hope you love your Binge Bite snacks..."
+          placeholder="We hope you love your Crunchy Bingebite snacks..."
           className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 resize-none"
         />
       </div>

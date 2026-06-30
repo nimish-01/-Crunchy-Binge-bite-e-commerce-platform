@@ -16,8 +16,18 @@ function buildPrisma() {
               return await query(args)
             } catch (err: unknown) {
               lastErr = err
-              const code = (err as { code?: string })?.code
-              if ((code === "P1001" || code === "P1002") && attempt < 3) {
+              // PrismaClientKnownRequestError uses `.code`; PrismaClientInitializationError uses `.errorCode`
+              const e = err as { code?: string; errorCode?: string; message?: string }
+              const code = e?.code ?? e?.errorCode
+              const isTransient =
+                code === "P1001" ||
+                code === "P1002" ||
+                (typeof e?.message === "string" &&
+                  (e.message.includes("Can't reach database server") ||
+                    e.message.includes("Connection refused") ||
+                    e.message.includes("ETIMEDOUT") ||
+                    e.message.includes("ECONNRESET")))
+              if (isTransient && attempt < 3) {
                 await new Promise((r) => setTimeout(r, attempt * 1500))
                 continue
               }

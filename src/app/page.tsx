@@ -173,7 +173,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── Why Choose Binge Bite ───────────────────────────────── */}
+        {/* ── Why Choose Crunchy Bingebite ────────────────────────── */}
         {cms.showWhyChooseUs && (
           <section className="container section-gap">
             <div className="text-center max-w-2xl mx-auto mb-12">
@@ -186,7 +186,7 @@ export default async function HomePage() {
                 Snacking, done right.
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                Binge Bite makhana is roasted to perfection — light, airy, and packed with real flavor.
+                Crunchy Bingebite makhana is roasted to perfection — light, airy, and packed with real flavor.
                 No compromise on taste, no compromise on health.
               </p>
             </div>

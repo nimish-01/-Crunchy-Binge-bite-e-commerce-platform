@@ -37,7 +37,7 @@ export default function RegisterPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Create your account</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Join Binge Bite for guilt-free snacking
+          Join Crunchy Bingebite for guilt-free snacking
         </p>
       </div>
 

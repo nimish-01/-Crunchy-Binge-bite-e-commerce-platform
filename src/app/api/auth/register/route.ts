@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { triggerWelcome, triggerNewCustomer } from "@/lib/notifications/triggers"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -35,9 +36,12 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
-    await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: { name, email, passwordHash, role: "CUSTOMER", isActive: true },
     })
+
+    triggerWelcome(newUser.id, name, email).catch(() => {})
+    triggerNewCustomer(name, email, newUser.id).catch(() => {})
 
     return NextResponse.json({ success: true }, { status: 201 })
   } catch (error) {

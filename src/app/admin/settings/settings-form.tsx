@@ -99,7 +99,7 @@ export default function SettingsForm({ settings }: Props) {
             </CardHeader>
             <CardContent className="space-y-4">
               <Field label="Company Name *" error={errors.companyName?.message}>
-                <Input placeholder="Binge Bite" {...register("companyName")} />
+                <Input placeholder="Crunchy Bingebite" {...register("companyName")} />
               </Field>
               <Field label="Tagline" error={errors.tagline?.message}>
                 <Input placeholder="Premium flavored makhana…" {...register("tagline")} />
@@ -173,7 +173,7 @@ export default function SettingsForm({ settings }: Props) {
                 error={errors.copyrightText?.message}
                 hint="Replaces the default '© Year Company Name. All rights reserved.' Leave blank to use the default."
               >
-                <Input placeholder="© 2025 Binge Bite. All rights reserved." {...register("copyrightText")} />
+                <Input placeholder="© 2025 Crunchy Bingebite. All rights reserved." {...register("copyrightText")} />
               </Field>
             </CardContent>
           </Card>

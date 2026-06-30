@@ -60,7 +60,7 @@ export default async function PackingSlipPage({ params }: Props) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, paddingBottom: 16, borderBottom: "2px solid #111" }}>
           <div>
-            <p style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>🌾 {settings?.companyName ?? "Binge Bite"}</p>
+            <p style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>🌾 {settings?.companyName ?? "Crunchy Bingebite"}</p>
             <p style={{ fontSize: 11, color: "#666", marginTop: 2 }}>PACKING SLIP</p>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -87,7 +87,7 @@ export default async function PackingSlipPage({ params }: Props) {
           <div>
             <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#888", marginBottom: 6 }}>Return To</p>
             <div style={{ fontSize: 12, lineHeight: 1.5, color: "#555" }}>
-              <p style={{ margin: 0, fontWeight: 600, color: "#111" }}>{settings?.companyName ?? "Binge Bite"}</p>
+              <p style={{ margin: 0, fontWeight: 600, color: "#111" }}>{settings?.companyName ?? "Crunchy Bingebite"}</p>
               {settings?.businessAddress && <p style={{ margin: 0, whiteSpace: "pre-line" }}>{settings.businessAddress}</p>}
               {settings?.supportPhone && <p style={{ margin: 0 }}>{settings.supportPhone}</p>}
             </div>
@@ -147,7 +147,7 @@ export default async function PackingSlipPage({ params }: Props) {
         </div>
 
         <p style={{ textAlign: "center", fontSize: 11, color: "#999", margin: 0 }}>
-          Thank you for shopping with {settings?.companyName ?? "Binge Bite"}!
+          Thank you for shopping with {settings?.companyName ?? "Crunchy Bingebite"}!
         </p>
       </div>
     </>

@@ -4,7 +4,7 @@ import { Star } from "lucide-react"
 import Link from "next/link"
 import CustomerReviewActions from "@/components/shop/customer-review-actions"
 
-export const metadata = { title: "My Reviews — Binge Bite" }
+export const metadata = { title: "My Reviews — Crunchy Bingebite" }
 
 export default async function MyReviewsPage() {
   const session = await auth()

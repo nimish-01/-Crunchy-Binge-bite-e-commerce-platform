@@ -21,6 +21,7 @@ import { useCart } from "@/contexts/cart-context"
 import { useNotifications } from "@/contexts/notification-context"
 import { getInitials } from "@/lib/utils"
 import CartDrawer from "@/components/shop/cart-drawer"
+import NotificationBell from "@/components/notifications/notification-bell"
 import ThemeToggle from "@/components/ui/theme-toggle"
 import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
@@ -128,10 +129,10 @@ export default function Header() {
           <Link
             href="/"
             className="flex items-center gap-2 font-bold text-[1.1rem] tracking-tight shrink-0 mr-2"
-            aria-label="Binge Bite home"
+            aria-label="Crunchy Bingebite home"
           >
             <span className="text-brand-500 text-xl leading-none" aria-hidden>🌾</span>
-            <span className="hidden sm:block">Binge Bite</span>
+            <span className="hidden sm:block">Crunchy Bingebite</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -211,21 +212,7 @@ export default function Header() {
             {session ? (
               <>
                 {/* Notifications */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative hidden sm:flex touch-target"
-                  asChild
-                >
-                  <Link href="/notifications" aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}>
-                    <Bell className="h-[1.1rem] w-[1.1rem]" />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-[9px] font-bold text-white flex items-center justify-center leading-none">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                  </Link>
-                </Button>
+                <NotificationBell portal="customer" className="hidden sm:flex" />
 
                 {/* User Menu */}
                 <DropdownMenu>
@@ -343,7 +330,7 @@ export default function Header() {
                     onClick={() => setMobileOpen(false)}
                   >
                     <span className="text-brand-500">🌾</span>
-                    Binge Bite
+                    Crunchy Bingebite
                   </Link>
                   <button
                     onClick={() => setMobileOpen(false)}

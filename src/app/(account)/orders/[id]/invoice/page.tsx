@@ -50,7 +50,7 @@ export default async function InvoicePage({ params }: Props) {
         {/* Header */}
         <div className="flex justify-between items-start border-b border-gray-200 pb-6 mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Binge Bite</h1>
+            <h1 className="text-2xl font-bold">Crunchy Bingebite</h1>
             <p className="text-sm text-gray-500 mt-0.5">Premium Makhana</p>
             <p className="text-xs text-gray-400 mt-1">
               support@bingebite.in · www.bingebite.in

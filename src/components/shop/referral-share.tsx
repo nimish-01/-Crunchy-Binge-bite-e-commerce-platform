@@ -18,7 +18,7 @@ export default function ReferralShare({ referralCode, referralLink }: Props) {
   }
 
   const whatsappMsg = encodeURIComponent(
-    `Hey! Try Binge Bite for healthy snacks. Use my referral link to get bonus points: ${referralLink}`,
+    `Hey! Try Crunchy Bingebite for healthy snacks. Use my referral link to get bonus points: ${referralLink}`,
   )
 
   return (
@@ -53,7 +53,7 @@ export default function ReferralShare({ referralCode, referralLink }: Props) {
           WhatsApp
         </a>
         <a
-          href={`mailto:?subject=Join Binge Bite&body=Use my referral link: ${referralLink}`}
+          href={`mailto:?subject=Join Crunchy Bingebite&body=Use my referral link: ${referralLink}`}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-muted hover:bg-muted/80 transition-colors"
         >
           Email Invite

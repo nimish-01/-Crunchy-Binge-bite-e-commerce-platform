@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { getLoyaltySettings } from "@/lib/services/loyalty"
 import { Gift, TrendingUp, TrendingDown, Star } from "lucide-react"
 
-export const metadata = { title: "Loyalty Points — Binge Bite" }
+export const metadata = { title: "Loyalty Points — Crunchy Bingebite" }
 
 export default async function LoyaltyPage() {
   const session = await auth()

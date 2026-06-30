@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, Users, Ticket,
   Bell, Image as ImageIcon, BarChart3, Settings, Warehouse,
@@ -10,8 +10,8 @@ import {
   Truck, BoxIcon, MapPin, RefreshCw,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useSession } from "next-auth/react"
-import { logoutAdminAction } from "@/lib/actions/auth"
+import { useSession, signOut } from "next-auth/react"
+import NotificationBell from "@/components/notifications/notification-bell"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getInitials } from "@/lib/utils"
 
@@ -123,8 +123,15 @@ function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { data: session } = useSession()
   const isSuperAdmin = session?.user?.role === "SUPER_ADMIN"
+
+  async function handleLogout() {
+    await signOut({ redirect: false })
+    router.push("/admin/login")
+    router.refresh()
+  }
 
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin"
@@ -138,15 +145,18 @@ export default function AdminSidebar() {
     >
       {/* Logo */}
       <div className="px-5 py-4 border-b border-border/40">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-semibold text-base group"
-          aria-label="Binge Bite — go to storefront"
-        >
-          <span className="text-brand-500 text-lg">🌾</span>
-          <span className="flex-1">Binge Bite</span>
-          <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-semibold text-base group min-w-0"
+            aria-label="Crunchy Bingebite — go to storefront"
+          >
+            <span className="text-brand-500 text-lg shrink-0">🌾</span>
+            <span className="flex-1 truncate">Crunchy Bingebite</span>
+            <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+          </Link>
+          <NotificationBell portal="admin" />
+        </div>
         <p className="text-[11px] text-muted-foreground mt-0.5 pl-7">Admin Panel</p>
       </div>
 
@@ -189,7 +199,7 @@ export default function AdminSidebar() {
           </div>
         </div>
         <button
-          onClick={() => logoutAdminAction()}
+          onClick={handleLogout}
           className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-colors"
         >
           <LogOut className="h-3.5 w-3.5" />

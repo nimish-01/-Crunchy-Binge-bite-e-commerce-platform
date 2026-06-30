@@ -62,7 +62,7 @@ export default async function ShippingLabelPage({ params }: Props) {
       }}>
         {/* Header bar */}
         <div style={{ background: "#111", color: "#fff", padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 14, fontWeight: 700 }}>🌾 {settings?.companyName ?? "Binge Bite"}</span>
+          <span style={{ fontSize: 14, fontWeight: 700 }}>🌾 {settings?.companyName ?? "Crunchy Bingebite"}</span>
           {shipment.courier && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.15)", padding: "2px 8px", borderRadius: 4 }}>{shipment.courier.name}</span>}
         </div>
 
@@ -106,7 +106,7 @@ export default async function ShippingLabelPage({ params }: Props) {
         <div style={{ padding: "10px 12px", borderBottom: "1px solid #ddd", background: "#f9f9f9" }}>
           <p style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#888", margin: "0 0 4px" }}>RETURN TO</p>
           <div style={{ fontSize: 11, lineHeight: 1.5, color: "#555" }}>
-            <p style={{ margin: 0, fontWeight: 600, color: "#111" }}>{settings?.companyName ?? "Binge Bite"}</p>
+            <p style={{ margin: 0, fontWeight: 600, color: "#111" }}>{settings?.companyName ?? "Crunchy Bingebite"}</p>
             {settings?.businessAddress ? (
               <p style={{ margin: 0 }}>{settings.businessAddress.replace(/\n/g, ", ")}</p>
             ) : null}

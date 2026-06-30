@@ -1,26 +1,43 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { LayoutDashboard, Package, AlertTriangle, History, ChevronRight } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { LayoutDashboard, Package, AlertTriangle, History, Bell, ChevronRight, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useSession, signOut } from "next-auth/react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getInitials } from "@/lib/utils"
+import NotificationBell from "@/components/notifications/notification-bell"
 
 const NAV = [
   { label: "Dashboard", href: "/inventory", icon: LayoutDashboard },
   { label: "Stock Management", href: "/inventory/stock", icon: Package },
   { label: "Low Stock Alerts", href: "/inventory/alerts", icon: AlertTriangle },
   { label: "History", href: "/inventory/history", icon: History },
+  { label: "Notifications", href: "/inventory/notifications", icon: Bell },
 ]
 
 export default function InventorySidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { data: session } = useSession()
+
+  async function handleLogout() {
+    await signOut({ redirect: false })
+    router.push("/inventory/login")
+    router.refresh()
+  }
+
   return (
     <aside className="w-64 shrink-0 hidden md:flex flex-col border-r border-border/40 bg-card min-h-screen">
       <div className="p-6 border-b border-border/40">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <span className="text-brand-500">🌾</span>
-          <span>Inventory</span>
-        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg min-w-0">
+            <span className="text-brand-500 shrink-0">🌾</span>
+            <span className="truncate">Inventory</span>
+          </Link>
+          <NotificationBell portal="inventory" />
+        </div>
       </div>
       <nav className="flex-1 p-4 space-y-1">
         {NAV.map((item) => {
@@ -46,6 +63,33 @@ export default function InventorySidebar() {
           )
         })}
       </nav>
+
+      {/* User footer */}
+      <div className="p-3 border-t border-border/40">
+        <div className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 bg-accent/50 mb-2">
+          <Avatar className="h-7 w-7 shrink-0">
+            <AvatarImage src={session?.user?.image ?? ""} />
+            <AvatarFallback className="text-[10px] bg-brand-500/20 text-brand-400 font-semibold">
+              {getInitials(session?.user?.name ?? "I")}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium truncate leading-tight">
+              {session?.user?.name ?? "Inventory"}
+            </p>
+            <p className="text-[10px] text-muted-foreground truncate">
+              {session?.user?.role?.replace("_", " ")}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-colors"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          Sign Out
+        </button>
+      </div>
     </aside>
   )
 }

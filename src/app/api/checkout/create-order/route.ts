@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/auth"
 import { createOrderFromCart, getCheckoutErrorResponse } from "@/lib/services/checkout"
+import { prisma } from "@/lib/prisma"
+import { triggerOrderPlaced } from "@/lib/notifications/triggers"
 
 const createOrderSchema = z.object({
   addressId: z.string().min(1, "Address is required"),
@@ -38,6 +40,12 @@ export async function POST(req: NextRequest) {
       giftMessage: giftMessage ?? null,
       notes: notes ?? null,
     })
+
+    const [user, itemCount] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } }),
+      prisma.orderItem.count({ where: { orderId: order.id } }),
+    ])
+    triggerOrderPlaced(userId, order.id, order.orderNumber, order.total, itemCount || 1, order.paymentMethod ?? "COD", user?.email ?? "", user?.name ?? "Customer").catch(() => {})
 
     return NextResponse.json({
       success: true,

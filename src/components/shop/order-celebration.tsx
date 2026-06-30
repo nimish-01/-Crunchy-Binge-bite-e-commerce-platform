@@ -249,8 +249,8 @@ export default function OrderCelebration({
 
   async function handleShare() {
     const shareData = {
-      title: "My Binge Bite Order",
-      text: `I just ordered from Binge Bite! Order #${orderNumber}`,
+      title: "My Crunchy Bingebite Order",
+      text: `I just ordered from Crunchy Bingebite! Order #${orderNumber}`,
       url: typeof window !== "undefined" ? `${window.location.origin}/orders/${orderId}` : "",
     }
     try {

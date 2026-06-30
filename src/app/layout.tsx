@@ -15,11 +15,11 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: { default: "Binge Bite — Premium Makhana", template: "%s | Binge Bite" },
+  title: { default: "Crunchy Bingebite — Premium Makhana", template: "%s | Crunchy Bingebite" },
   description: "Premium flavored makhana. Guilt-free snacking, delivered to your door.",
-  keywords: ["makhana", "fox nuts", "healthy snacks", "premium snacks", "binge bite"],
+  keywords: ["makhana", "fox nuts", "healthy snacks", "premium snacks", "crunchy bingebite"],
   openGraph: {
-    title: "Binge Bite — Premium Makhana",
+    title: "Crunchy Bingebite — Premium Makhana",
     description: "Premium flavored makhana. Guilt-free snacking, delivered to your door.",
     type: "website",
   },

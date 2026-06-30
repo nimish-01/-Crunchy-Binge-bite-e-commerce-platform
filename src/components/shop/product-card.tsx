@@ -10,6 +10,8 @@ import { formatPrice, getDiscountPercent } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import type { ProductWithVariants } from "@/types"
 import { useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 
 interface ProductCardProps {
@@ -21,6 +23,9 @@ interface ProductCardProps {
 export default function ProductCard({ product, className, priority = false }: ProductCardProps) {
   const { addItem, isLoading } = useCart()
   const { toast } = useToast()
+  const router = useRouter()
+  const pathname = usePathname()
+  const { status: sessionStatus } = useSession()
   const [adding, setAdding] = useState(false)
   const [wishlisted, setWishlisted] = useState(false)
 
@@ -34,6 +39,10 @@ export default function ProductCard({ product, className, priority = false }: Pr
     e.preventDefault()
     e.stopPropagation()
     if (isOutOfStock || adding) return
+    if (sessionStatus === "unauthenticated") {
+      router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`)
+      return
+    }
     setAdding(true)
     try {
       await addItem(product.id, defaultVariant.id)

@@ -1,14 +1,13 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { getNotificationLink } from "@/lib/notifications/deep-links"
-import { Bell, BellOff, CheckCheck, Trash2, RefreshCw, Search, Filter, X } from "lucide-react"
+import { Bell, BellOff, CheckCheck, Trash2, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { formatDateTime } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import { getNotificationLink } from "@/lib/notifications/deep-links"
 import type { Notification } from "@prisma/client"
 
 const TYPE_ICONS: Record<string, string> = {
@@ -23,25 +22,18 @@ const TYPE_ICONS: Record<string, string> = {
   GENERAL: "🔔",
 }
 
-type FilterType = "all" | "unread" | "read"
-
-export default function NotificationsPage() {
+export default function InventoryNotificationsPage() {
   const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [filter, setFilter] = useState<FilterType>("all")
-  const [search, setSearch] = useState("")
-  const [searchInput, setSearchInput] = useState("")
 
-  const fetchNotifications = useCallback(async (pg = 1, f = filter, q = search) => {
+  const fetchNotifications = useCallback(async (pg = 1) => {
     setLoading(true)
     try {
-      const params = new URLSearchParams({ page: String(pg), filter: f })
-      if (q) params.set("q", q)
-      const res = await fetch(`/api/notifications?${params}`)
+      const res = await fetch(`/api/notifications?page=${pg}`)
       const data = await res.json()
       if (data.success) {
         setNotifications(data.notifications ?? [])
@@ -52,9 +44,9 @@ export default function NotificationsPage() {
     } finally {
       setLoading(false)
     }
-  }, [filter, search])
+  }, [])
 
-  useEffect(() => { fetchNotifications(1) }, [filter, search])
+  useEffect(() => { fetchNotifications(1) }, [fetchNotifications])
 
   async function markRead(id: string) {
     await fetch("/api/notifications", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) })
@@ -68,31 +60,23 @@ export default function NotificationsPage() {
     setUnreadCount(0)
   }
 
-  async function deleteNotification(id: string) {
+  async function deleteItem(id: string) {
     await fetch(`/api/notifications?id=${id}`, { method: "DELETE" })
     setNotifications((prev) => prev.filter((n) => n.id !== id))
   }
 
-  function handleNotificationClick(notification: typeof notifications[0]) {
-    if (!notification.isRead) markRead(notification.id)
-    router.push(getNotificationLink(notification, "customer"))
-  }
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
-    setSearch(searchInput)
+  function handleItemClick(n: Notification) {
+    if (!n.isRead) markRead(n.id)
+    router.push(getNotificationLink(n, "inventory"))
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
-      {/* Header */}
+    <div className="max-w-2xl space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Bell className="h-5 w-5 text-brand-400" />
           <h1 className="text-xl font-bold">Notifications</h1>
-          {unreadCount > 0 && (
-            <Badge variant="brand" className="text-xs">{unreadCount} new</Badge>
-          )}
+          {unreadCount > 0 && <Badge variant="destructive" className="text-xs">{unreadCount} new</Badge>}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => fetchNotifications(page)}>
@@ -107,48 +91,10 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <form onSubmit={handleSearch} className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search notifications…"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="pl-9"
-          />
-          {searchInput && (
-            <button type="button" onClick={() => { setSearchInput(""); setSearch("") }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-        <Button type="submit" variant="outline" size="icon"><Search className="h-4 w-4" /></Button>
-      </form>
-
-      {/* Filters */}
-      <div className="flex gap-2">
-        {(["all", "unread", "read"] as FilterType[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-              filter === f
-                ? "bg-brand-500 text-zinc-900"
-                : "bg-accent text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {/* List */}
       {loading ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-20 rounded-xl skeleton" />
+            <div key={i} className="h-20 rounded-xl bg-accent/40 animate-pulse" />
           ))}
         </div>
       ) : notifications.length === 0 ? (
@@ -157,16 +103,14 @@ export default function NotificationsPage() {
             <BellOff className="h-6 w-6 text-muted-foreground" />
           </div>
           <p className="font-medium">No notifications</p>
-          <p className="text-sm text-muted-foreground">
-            {search ? "Try a different search" : filter !== "all" ? `No ${filter} notifications` : "You're all caught up!"}
-          </p>
+          <p className="text-sm text-muted-foreground">You're all caught up!</p>
         </div>
       ) : (
         <div className="space-y-2">
           {notifications.map((n) => (
             <div
               key={n.id}
-              onClick={() => handleNotificationClick(n)}
+              onClick={() => handleItemClick(n)}
               className={cn(
                 "group relative flex gap-3 rounded-xl border p-4 transition-all cursor-pointer",
                 n.isRead
@@ -174,25 +118,21 @@ export default function NotificationsPage() {
                   : "border-brand-500/30 bg-brand-500/5 hover:border-brand-500/50"
               )}
             >
-              <div className="text-xl shrink-0 mt-0.5">
-                {TYPE_ICONS[n.type] ?? "🔔"}
-              </div>
+              <div className="text-xl shrink-0 mt-0.5">{TYPE_ICONS[n.type] ?? "🔔"}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className={cn("text-sm font-medium leading-tight", !n.isRead && "text-foreground")}>
                     {n.title}
                   </p>
-                  {!n.isRead && (
-                    <div className="h-2 w-2 rounded-full bg-brand-500 shrink-0 mt-1" />
-                  )}
+                  {!n.isRead && <div className="h-2 w-2 rounded-full bg-brand-500 shrink-0 mt-1" />}
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{n.body}</p>
                 <p className="text-[11px] text-muted-foreground/60 mt-1.5">{formatDateTime(n.createdAt)}</p>
               </div>
               <button
-                onClick={(e) => { e.stopPropagation(); deleteNotification(n.id) }}
+                onClick={(e) => { e.stopPropagation(); deleteItem(n.id) }}
                 className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                aria-label="Delete"
+                aria-label="Delete notification"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -201,16 +141,11 @@ export default function NotificationsPage() {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 pt-2">
-          <Button variant="outline" size="sm" onClick={() => fetchNotifications(page - 1)} disabled={page <= 1}>
-            Previous
-          </Button>
+          <Button variant="outline" size="sm" onClick={() => fetchNotifications(page - 1)} disabled={page <= 1}>Previous</Button>
           <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-          <Button variant="outline" size="sm" onClick={() => fetchNotifications(page + 1)} disabled={page >= totalPages}>
-            Next
-          </Button>
+          <Button variant="outline" size="sm" onClick={() => fetchNotifications(page + 1)} disabled={page >= totalPages}>Next</Button>
         </div>
       )}
     </div>

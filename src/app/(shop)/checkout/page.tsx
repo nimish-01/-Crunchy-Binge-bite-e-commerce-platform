@@ -186,7 +186,7 @@ export default function CheckoutPage() {
     await new Promise<void>((resolve, reject) => {
       const rzp = new window.Razorpay({
         key, amount, currency, order_id: razorpayOrderId,
-        name: "Binge Bite", description: "Makhana Order",
+        name: "Crunchy Bingebite", description: "Makhana Order",
         prefill: { name: session?.user?.name ?? undefined, email: session?.user?.email ?? undefined },
         theme: { color: "#84cc16" },
         handler: async (response) => {

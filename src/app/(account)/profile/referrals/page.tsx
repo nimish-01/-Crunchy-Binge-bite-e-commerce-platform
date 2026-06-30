@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { Users2, CheckCircle, Clock } from "lucide-react"
 import ReferralShare from "@/components/shop/referral-share"
 
-export const metadata = { title: "Referrals — Binge Bite" }
+export const metadata = { title: "Referrals — Crunchy Bingebite" }
 
 export default async function ReferralsPage() {
   const session = await auth()

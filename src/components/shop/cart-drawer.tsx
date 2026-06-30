@@ -2,6 +2,8 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Minus, Plus, Trash2, ShoppingBag, Tag, ArrowRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -24,6 +26,17 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
     items, subtotal, total, discountAmount, deliveryCharge,
     itemCount, coupon, removeItem, updateQuantity, applyCoupon, removeCoupon,
   } = useCart()
+  const { status: sessionStatus } = useSession()
+  const router = useRouter()
+
+  function handleCheckout() {
+    onClose()
+    if (sessionStatus === "unauthenticated") {
+      router.push("/login?callbackUrl=%2Fcheckout")
+    } else {
+      router.push("/checkout")
+    }
+  }
 
   const [couponInput, setCouponInput]   = useState("")
   const [couponLoading, setCouponLoading] = useState(false)
@@ -261,11 +274,9 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
           <span className="text-brand-400">{formatPrice(total)}</span>
         </div>
 
-        <Button variant="brand" className="w-full gap-2 font-semibold h-11" onClick={onClose} asChild>
-          <Link href="/checkout">
-            Checkout
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+        <Button variant="brand" className="w-full gap-2 font-semibold h-11" onClick={handleCheckout}>
+          Checkout
+          <ArrowRight className="h-4 w-4" />
         </Button>
 
         <p className="text-center text-xs text-muted-foreground">
