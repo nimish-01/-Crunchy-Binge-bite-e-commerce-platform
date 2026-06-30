@@ -213,7 +213,7 @@ export default function Header() {
             {session ? (
               <>
                 {/* Notifications */}
-                <NotificationBell portal="customer" className="hidden sm:flex" />
+                <NotificationBell portal="customer" />
 
                 {/* User Menu */}
                 <DropdownMenu>
