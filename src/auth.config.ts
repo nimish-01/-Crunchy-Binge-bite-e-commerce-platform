@@ -6,6 +6,7 @@ import type { UserRole } from "@prisma/client"
  * Used by middleware and as the base for the full auth.ts config.
  */
 export const authConfig = {
+  trustHost: true,
   session: { strategy: "jwt" as const },
   pages: {
     signIn: "/login",

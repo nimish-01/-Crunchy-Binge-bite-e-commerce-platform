@@ -1,10 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
+import { useTransition } from "react"
+import { inventoryLogoutAction } from "@/lib/actions/auth"
 import { LayoutDashboard, Package, AlertTriangle, History, Bell, ChevronRight, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getInitials } from "@/lib/utils"
 import NotificationBell from "@/components/notifications/notification-bell"
@@ -19,13 +21,11 @@ const NAV = [
 
 export default function InventorySidebar() {
   const pathname = usePathname()
-  const router = useRouter()
   const { data: session } = useSession()
+  const [isPending, startTransition] = useTransition()
 
-  async function handleLogout() {
-    await signOut({ redirect: false })
-    router.push("/inventory/login")
-    router.refresh()
+  function handleLogout() {
+    startTransition(() => { inventoryLogoutAction() })
   }
 
   return (
@@ -84,10 +84,11 @@ export default function InventorySidebar() {
         </div>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-colors"
+          disabled={isPending}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-colors disabled:opacity-50"
         >
           <LogOut className="h-3.5 w-3.5" />
-          Sign Out
+          {isPending ? "Signing out…" : "Sign Out"}
         </button>
       </div>
     </aside>

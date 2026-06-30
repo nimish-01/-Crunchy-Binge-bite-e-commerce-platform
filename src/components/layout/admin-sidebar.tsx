@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
+import { useTransition } from "react"
+import { adminLogoutAction } from "@/lib/actions/auth"
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, Users, Ticket,
   Bell, Image as ImageIcon, BarChart3, Settings, Warehouse,
@@ -10,7 +12,7 @@ import {
   Truck, BoxIcon, MapPin, RefreshCw,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import NotificationBell from "@/components/notifications/notification-bell"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getInitials } from "@/lib/utils"
@@ -123,14 +125,12 @@ function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
 
 export default function AdminSidebar() {
   const pathname = usePathname()
-  const router = useRouter()
   const { data: session } = useSession()
   const isSuperAdmin = session?.user?.role === "SUPER_ADMIN"
+  const [isPending, startTransition] = useTransition()
 
-  async function handleLogout() {
-    await signOut({ redirect: false })
-    router.push("/admin/login")
-    router.refresh()
+  function handleLogout() {
+    startTransition(() => { adminLogoutAction() })
   }
 
   function isActive(href: string) {
@@ -200,10 +200,11 @@ export default function AdminSidebar() {
         </div>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-colors"
+          disabled={isPending}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-colors disabled:opacity-50"
         >
           <LogOut className="h-3.5 w-3.5" />
-          Sign Out
+          {isPending ? "Signing out…" : "Sign Out"}
         </button>
       </div>
     </aside>

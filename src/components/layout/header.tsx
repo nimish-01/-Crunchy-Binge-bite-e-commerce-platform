@@ -23,7 +23,7 @@ import { getInitials } from "@/lib/utils"
 import CartDrawer from "@/components/shop/cart-drawer"
 import NotificationBell from "@/components/notifications/notification-bell"
 import ThemeToggle from "@/components/ui/theme-toggle"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useTransition } from "react"
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
@@ -45,6 +45,7 @@ export default function Header() {
   const [scrolled, setScrolled]       = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const searchRef = useRef<HTMLInputElement>(null)
+  const [, startLogoutTransition] = useTransition()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -295,7 +296,7 @@ export default function Header() {
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={() => logoutAction()}
+                      onClick={() => startLogoutTransition(() => { logoutAction() })}
                       className="text-destructive focus:text-destructive"
                     >
                       <LogOut className="h-4 w-4" />Sign Out
@@ -413,7 +414,7 @@ export default function Header() {
                 {session && (
                   <div className="px-5 py-4 border-t border-border/50">
                     <button
-                      onClick={() => logoutAction()}
+                      onClick={() => startLogoutTransition(() => { logoutAction() })}
                       className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors w-full"
                     >
                       <LogOut className="h-4 w-4" />
