@@ -69,7 +69,7 @@ export default async function CouponsAnalyticsPage({ searchParams }: Props) {
       <AnalyticsNav />
       <Suspense><DateFilter current={period} /></Suspense>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Active Coupons"    value={activeCoupons}  icon={CheckCircle}  color="text-green-500"  />
         <KpiCard title="Expired / Paused" value={expiredCoupons} icon={XCircle}      color="text-red-500"    />
         <KpiCard title="Orders with Coupons" value={couponOrders} icon={Ticket}      color="text-brand-400"  />

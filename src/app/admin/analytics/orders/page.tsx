@@ -79,7 +79,7 @@ export default async function OrdersAnalyticsPage({ searchParams }: Props) {
       <AnalyticsNav />
       <Suspense><DateFilter current={period} /></Suspense>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Total Orders"    value={total}     icon={ShoppingBag} color="text-brand-400" />
         <KpiCard title="Delivered"       value={delivered} icon={CheckCircle} color="text-green-500"  subtitle={pct(delivered)} />
         <KpiCard title="Cancelled"       value={cancelled} icon={XCircle}     color="text-red-500"    subtitle={pct(cancelled)} />

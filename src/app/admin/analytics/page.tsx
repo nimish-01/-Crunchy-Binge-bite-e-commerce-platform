@@ -101,12 +101,12 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Analytics</h1>
           <p className="text-muted-foreground text-sm">Business intelligence dashboard · Updated every 5 min</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {quickLinks.map(({ label, href, icon: Icon }) => (
             <Link
               key={href}
@@ -125,7 +125,7 @@ export default async function AnalyticsPage() {
       {sections.map((section) => (
         <div key={section.title}>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{section.title}</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
             {section.cards.map((card) => (
               <KpiCard
                 key={card.title}
@@ -146,7 +146,7 @@ export default async function AnalyticsPage() {
       ))}
 
       {/* Loyalty highlight */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
         <div className="bg-card border border-border/50 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-2">
             <Gift className="h-4 w-4 text-brand-400" />

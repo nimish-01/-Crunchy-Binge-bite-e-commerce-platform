@@ -76,7 +76,7 @@ export default async function LoyaltyAnalyticsPage({ searchParams }: Props) {
       <AnalyticsNav />
       <Suspense><DateFilter current={period} /></Suspense>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Points Transacted" value={pointsEarned}           icon={Gift}      color="text-brand-400"  />
         <KpiCard title="Wallet Wallets"    value={walletStats._count.id}  icon={Wallet}    color="text-teal-500"   />
         <KpiCard title="Wallet Balance"    value={walletTotal}            icon={Wallet}    color="text-green-500"  prefix="₹" />

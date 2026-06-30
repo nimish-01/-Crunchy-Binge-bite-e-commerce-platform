@@ -38,7 +38,7 @@ export function OrderStatusUpdater({ orderId, currentStatus }: Props) {
   return (
     <div className="flex items-center gap-2">
       <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="w-40">
+        <SelectTrigger className="w-32 sm:w-40">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

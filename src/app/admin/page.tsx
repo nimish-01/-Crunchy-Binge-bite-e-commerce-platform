@@ -7,6 +7,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import RecordCard from "@/components/admin/mobile/record-card"
 
 async function getStats() {
   const today = new Date(); today.setHours(0, 0, 0, 0)
@@ -108,7 +109,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         {KPIs.map((kpi) => {
           const Icon = kpi.icon
           return (
@@ -182,8 +183,8 @@ export default async function AdminDashboard() {
           </Button>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+        {/* Table — desktop */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm" aria-label="Recent orders">
             <thead>
               <tr className="border-b border-border/40">
@@ -241,6 +242,36 @@ export default async function AdminDashboard() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Cards — mobile */}
+        <div className="md:hidden divide-y divide-border/30">
+          {stats.recentOrders.length === 0 ? (
+            <p className="py-10 text-center text-sm text-muted-foreground">No recent orders.</p>
+          ) : (
+            stats.recentOrders.map((order) => {
+              const status = STATUS_CONFIG[order.status] ?? { label: order.status, className: "bg-muted text-muted-foreground border-border" }
+              return (
+                <div key={order.id} className="p-4">
+                  <RecordCard
+                    href={`/admin/orders/${order.id}`}
+                    title={`#${order.orderNumber}`}
+                    subtitle={order.user?.name ?? order.user?.email ?? "Guest"}
+                    badge={
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border shrink-0 ${status.className}`}>
+                        {status.label}
+                      </span>
+                    }
+                    meta={[
+                      { label: "Amount", value: <span className="text-brand-400 font-semibold">{formatPrice(order.total)}</span> },
+                      { label: "Date", value: formatDate(order.createdAt) },
+                    ]}
+                    className="border-0 p-0"
+                  />
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
     </div>

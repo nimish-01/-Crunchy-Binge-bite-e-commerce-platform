@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatPrice, formatDate } from "@/lib/utils"
 import CouponDialog from "./coupon-dialog"
 import { CouponToggle, CouponDeleteButton } from "./coupon-actions"
+import RecordCard from "@/components/admin/mobile/record-card"
 
 export default async function AdminCouponsPage() {
   const coupons = await prisma.coupon.findMany({
@@ -13,7 +14,7 @@ export default async function AdminCouponsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold">Coupons & Offers</h1>
         <CouponDialog />
       </div>
@@ -23,7 +24,8 @@ export default async function AdminCouponsPage() {
           <p className="text-muted-foreground">No coupons yet. Create your first one.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border/50 overflow-hidden">
+        <>
+        <div className="rounded-xl border border-border/50 overflow-hidden hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -92,6 +94,42 @@ export default async function AdminCouponsPage() {
             </TableBody>
           </Table>
         </div>
+
+        {/* Cards — mobile */}
+        <div className="md:hidden space-y-3">
+          {coupons.map((coupon) => {
+            const isExpired = new Date(coupon.validUntil) < new Date()
+            return (
+              <RecordCard
+                key={coupon.id}
+                title={<span className="font-mono text-brand-400">{coupon.code}</span>}
+                subtitle={coupon.description}
+                badge={
+                  <Badge variant={isExpired ? "secondary" : coupon.isActive ? "success" : "destructive"} className="text-xs">
+                    {isExpired ? "Expired" : coupon.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                }
+                meta={[
+                  {
+                    label: "Type / Value",
+                    value: coupon.type === "PERCENTAGE" ? `${coupon.value}%` : coupon.type === "FLAT" ? formatPrice(coupon.value) : "Free Ship",
+                  },
+                  { label: "Min Order", value: coupon.minOrderValue > 0 ? formatPrice(coupon.minOrderValue) : "—" },
+                  { label: "Used / Limit", value: `${coupon._count.usages} / ${coupon.totalUsageLimit ?? "∞"}` },
+                  { label: "Valid Until", value: formatDate(coupon.validUntil) },
+                ]}
+                actions={
+                  <>
+                    <CouponToggle id={coupon.id} isActive={coupon.isActive} />
+                    <CouponDialog coupon={coupon} />
+                    <CouponDeleteButton id={coupon.id} />
+                  </>
+                }
+              />
+            )
+          })}
+        </div>
+        </>
       )}
     </div>
   )

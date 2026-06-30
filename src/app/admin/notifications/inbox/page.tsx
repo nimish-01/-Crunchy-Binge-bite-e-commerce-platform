@@ -72,7 +72,7 @@ export default function AdminNotificationsInboxPage() {
 
   return (
     <div className="max-w-2xl space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <Bell className="h-5 w-5 text-brand-400" />
           <h1 className="text-xl font-bold">Your Notifications</h1>
@@ -119,7 +119,7 @@ export default function AdminNotificationsInboxPage() {
               )}
             >
               <div className="text-xl shrink-0 mt-0.5">{TYPE_ICONS[n.type] ?? "🔔"}</div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 pr-7 sm:pr-0">
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className={cn("text-sm font-medium leading-tight", !n.isRead && "text-foreground")}>
                     {n.title}
@@ -131,7 +131,7 @@ export default function AdminNotificationsInboxPage() {
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); deleteItem(n.id) }}
-                className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                className="absolute top-2 right-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive touch-target flex items-center justify-center"
                 aria-label="Delete notification"
               >
                 <Trash2 className="h-3.5 w-3.5" />

@@ -90,7 +90,7 @@ export default async function CustomersAnalyticsPage({ searchParams }: Props) {
       <AnalyticsNav />
       <Suspense><DateFilter current={period} /></Suspense>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Total Customers"   value={total}        icon={Users}      color="text-blue-500"   />
         <KpiCard title="New in Period"     value={newInPeriod}  icon={UserCheck}  color="text-green-500"  />
         <KpiCard title="Repeat Buyers"     value={repeatCount}  icon={ShoppingBag} color="text-purple-500" />

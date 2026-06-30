@@ -109,7 +109,7 @@ export default async function ProductsAnalyticsPage({ searchParams }: Props) {
       <AnalyticsNav />
       <Suspense><DateFilter current={period} /></Suspense>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Products Sold (SKUs)" value={bestSellers.length}       icon={Package}    color="text-brand-400" />
         <KpiCard title="Units Sold"           value={bestSellers.reduce((s, p) => s + toNum(p.qty), 0)} icon={TrendingUp} color="text-green-500" />
         <KpiCard title="Most Wishlisted"      value={mostWishlisted[0]?.name.slice(0, 18) ?? "—"} icon={Heart}    color="text-red-500" />

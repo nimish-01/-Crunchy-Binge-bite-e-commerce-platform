@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
@@ -23,6 +23,12 @@ export const metadata: Metadata = {
     description: "Premium flavored makhana. Guilt-free snacking, delivered to your door.",
     type: "website",
   },
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

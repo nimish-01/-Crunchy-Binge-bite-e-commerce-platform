@@ -47,9 +47,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
 
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Hash className="h-4 w-4 text-muted-foreground" />
-            <span className="font-mono font-bold text-xl">{order.orderNumber}</span>
+          <div className="flex items-center flex-wrap gap-2 mb-1">
+            <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="font-mono font-bold text-lg sm:text-xl break-all">{order.orderNumber}</span>
             <Badge variant={STATUS_COLORS[order.status] ?? "default"}>{order.status}</Badge>
             <Badge variant={order.paymentStatus === "PAID" ? "success" : order.paymentStatus === "FAILED" ? "destructive" : "secondary"}>
               {order.paymentStatus}

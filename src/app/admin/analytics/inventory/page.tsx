@@ -53,7 +53,7 @@ export default async function InventoryAnalyticsPage() {
 
       <AnalyticsNav />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Active Variants"    value={totalVariants}   icon={Package}      color="text-blue-500"   />
         <KpiCard title="Total Stock Units"  value={totalStock}      icon={CheckCircle}  color="text-green-500"  />
         <KpiCard title="Low Stock Variants" value={lowStock.length}  icon={AlertTriangle} color="text-yellow-500" />

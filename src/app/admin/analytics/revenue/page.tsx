@@ -91,14 +91,14 @@ export default async function RevenueAnalyticsPage({ searchParams }: Props) {
       <AnalyticsNav />
       <Suspense><DateFilter current={period} /></Suspense>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Gross Revenue"    value={gross}     icon={TrendingUp}    color="text-green-500"  prefix="₹" />
         <KpiCard title="Net Revenue"      value={net}       icon={TrendingUp}    color="text-blue-500"   prefix="₹" />
         <KpiCard title="Avg Order Value"  value={aov}       icon={ShoppingBag}   color="text-purple-500" prefix="₹" />
         <KpiCard title="Total Orders"     value={summary._count.id} icon={ShoppingBag} color="text-brand-400" />
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Discounts Given"  value={discounts} icon={Ticket}        color="text-orange-500" prefix="₹" />
         <KpiCard title="Shipping Revenue" value={shipping}  icon={TrendingUp}    color="text-teal-500"   prefix="₹" />
         <KpiCard title="Refunds Value"    value={refunds._sum.subtotal ?? 0} icon={RotateCcw} color="text-red-500" prefix="₹" />

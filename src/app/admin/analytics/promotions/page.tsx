@@ -56,7 +56,7 @@ export default async function PromotionsAnalyticsPage({ searchParams }: Props) {
       <AnalyticsNav />
       <Suspense><DateFilter current={period} /></Suspense>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4">
         <KpiCard title="Active Promotions"   value={active}   icon={CheckCircle} color="text-green-500"  />
         <KpiCard title="Expired Promotions"  value={expired}  icon={XCircle}     color="text-red-500"    />
         <KpiCard title="Upcoming Promotions" value={upcoming} icon={Calendar}    color="text-blue-500"   />

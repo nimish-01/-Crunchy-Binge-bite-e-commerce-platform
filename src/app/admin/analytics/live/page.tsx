@@ -64,7 +64,7 @@ export default async function LivePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">Live Dashboard</h1>
           <p className="text-muted-foreground text-sm">Real-time activity feed</p>

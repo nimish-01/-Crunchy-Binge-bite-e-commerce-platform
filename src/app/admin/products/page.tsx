@@ -10,6 +10,7 @@ import ProductFilters from "./product-filters"
 import ProductStatusToggle from "./product-status-toggle"
 import { Suspense } from "react"
 import type { ProductStatus } from "@prisma/client"
+import RecordCard from "@/components/admin/mobile/record-card"
 
 interface Props {
   searchParams: Promise<{ q?: string; status?: string; categoryId?: string; page?: string }>
@@ -67,7 +68,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
         <ProductFilters categories={categories} />
       </Suspense>
 
-      <div className="rounded-xl border border-border/50 overflow-hidden">
+      <div className="rounded-xl border border-border/50 overflow-hidden hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -130,6 +131,56 @@ export default async function AdminProductsPage({ searchParams }: Props) {
             })}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Cards — mobile */}
+      <div className="md:hidden space-y-3">
+        {products.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">No products found.</p>
+        ) : products.map((product) => {
+          const minPrice = product.variants.length > 0 ? Math.min(...product.variants.map((v) => v.price)) : 0
+          const totalStock = product.variants.reduce((s, v) => s + v.stock, 0)
+          const thumb = product.productMedia?.[0]?.mediaAsset?.secureUrl ?? product.images[0]
+          return (
+            <RecordCard
+              key={product.id}
+              href={`/admin/products/${product.id}/edit`}
+              leading={
+                <div className="h-12 w-12 rounded-lg bg-zinc-800 flex items-center justify-center overflow-hidden">
+                  {thumb ? (
+                    <img src={thumb} alt={product.name} className="w-full h-full object-cover rounded-lg" />
+                  ) : (
+                    <Image className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+              }
+              title={product.name}
+              subtitle={product.category.name}
+              badge={<ProductStatusToggle id={product.id} currentStatus={product.status} />}
+              meta={[
+                { label: "Price From", value: product.variants.length > 0 ? formatPrice(minPrice) : "—" },
+                {
+                  label: "Stock",
+                  value: (
+                    <span className={totalStock === 0 ? "text-destructive" : totalStock <= 20 ? "text-yellow-400" : "text-green-400"}>
+                      {totalStock} · {product.variants.length} variant{product.variants.length !== 1 ? "s" : ""}
+                    </span>
+                  ),
+                },
+              ]}
+              actions={
+                <>
+                  <Button variant="ghost" size="icon" asChild className="touch-target">
+                    <Link href={`/admin/products/${product.id}/edit`} aria-label={`Edit ${product.name}`}>
+                      <Edit className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <DeleteProductButton id={product.id} name={product.name} />
+                </>
+              }
+            />
+          )
+        })}
       </div>
 
       {totalPages > 1 && (

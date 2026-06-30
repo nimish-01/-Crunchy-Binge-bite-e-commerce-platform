@@ -369,6 +369,12 @@
     min-height: 44px;
     min-width: 44px;
   }
+
+  /* Safe-area insets (notches / home-indicator) */
+  .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+  .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+  .pl-safe { padding-left: max(1rem, env(safe-area-inset-left)); }
+  .pr-safe { padding-right: max(1rem, env(safe-area-inset-right)); }
 }
 
 /* ─── Order Delivered Animations ─────────────────────────────────── */

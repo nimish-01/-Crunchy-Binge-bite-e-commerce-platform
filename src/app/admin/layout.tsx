@@ -2,6 +2,7 @@ import { headers } from "next/headers"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import AdminSidebar from "@/components/layout/admin-sidebar"
+import AdminMobileHeader from "@/components/layout/admin-mobile-header"
 
 export const dynamic = "force-dynamic"
 
@@ -22,10 +23,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex flex-col md:flex-row min-h-screen bg-background">
+      <AdminMobileHeader />
       <AdminSidebar />
       <main className="flex-1 min-w-0 overflow-auto">
-        <div className="p-5 sm:p-6 lg:p-8 max-w-[1600px]">{children}</div>
+        <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px]">{children}</div>
       </main>
     </div>
   )

@@ -5,6 +5,7 @@ import { formatPrice, formatDate } from "@/lib/utils"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Eye, ChevronRight, RotateCcw } from "lucide-react"
+import RecordCard from "@/components/admin/mobile/record-card"
 
 const STATUS_COLOR: Record<string, "default" | "secondary" | "destructive" | "success" | "warning" | "brand" | "outline"> = {
   PENDING: "warning", CONFIRMED: "brand", PACKED: "brand",
@@ -47,7 +48,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-border/50 overflow-hidden">
+      <div className="rounded-xl border border-border/50 overflow-hidden hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -90,6 +91,42 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Cards — mobile */}
+      <div className="md:hidden space-y-3">
+        {orders.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">No orders found</p>
+        ) : orders.map((order) => (
+          <RecordCard
+            key={order.id}
+            href={`/admin/orders/${order.id}`}
+            title={<span className="font-mono">#{order.orderNumber}</span>}
+            subtitle={order.user?.name ?? order.user?.email ?? "Guest"}
+            badge={
+              <Badge variant={STATUS_COLOR[order.status] ?? "default"} className="text-xs">{order.status}</Badge>
+            }
+            meta={[
+              { label: "Total", value: <span className="text-brand-400 font-semibold">{formatPrice(order.total)}</span> },
+              {
+                label: "Payment",
+                value: (
+                  <Badge variant={order.paymentStatus === "PAID" ? "success" : order.paymentStatus === "FAILED" ? "destructive" : "secondary"} className="text-xs">
+                    {order.paymentStatus}
+                  </Badge>
+                ),
+              },
+              { label: "Date", value: formatDate(order.createdAt) },
+            ]}
+            actions={
+              <Button variant="ghost" size="icon" asChild className="touch-target">
+                <Link href={`/admin/orders/${order.id}`} aria-label={`View order #${order.orderNumber}`}>
+                  <Eye className="h-4 w-4" />
+                </Link>
+              </Button>
+            }
+          />
+        ))}
       </div>
 
       {/* Pagination controls */}

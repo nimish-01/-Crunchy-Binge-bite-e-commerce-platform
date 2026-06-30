@@ -85,7 +85,7 @@ export default async function ReviewsAnalyticsPage({ searchParams }: Props) {
       <AnalyticsNav />
       <Suspense><DateFilter current={period} /></Suspense>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard title="Approved"    value={approved}               icon={CheckCircle} color="text-green-500"  />
         <KpiCard title="Pending"     value={pending}                icon={Clock}       color="text-yellow-500" />
         <KpiCard title="Rejected"    value={rejected}               icon={XCircle}     color="text-red-500"    />

@@ -82,7 +82,7 @@ export default function ProductForm({ categories, product }: Props) {
       <Card>
         <CardHeader><CardTitle>Basic Information</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Product Name *</Label>
               <Input placeholder="Himalayan Salt Makhana" {...register("name")} onBlur={handleNameBlur} />
@@ -105,7 +105,7 @@ export default function ProductForm({ categories, product }: Props) {
             <Textarea placeholder="Full product description..." rows={4} {...register("description")} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Category *</Label>
               <Select defaultValue={product?.categoryId} onValueChange={(v) => setValue("categoryId", v)}>
@@ -129,7 +129,7 @@ export default function ProductForm({ categories, product }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center flex-wrap gap-x-6 gap-y-3">
             <div className="flex items-center gap-2">
               <Switch id="featured" defaultChecked={product?.isFeatured} onCheckedChange={(v) => setValue("isFeatured", v)} />
               <Label htmlFor="featured">Featured (Bestseller)</Label>
@@ -266,8 +266,8 @@ export default function ProductForm({ categories, product }: Props) {
         </CardContent>
       </Card>
 
-      <div className="flex gap-3">
-        <Button type="submit" variant="brand" disabled={isSubmitting}>
+      <div className="flex gap-3 sticky bottom-0 md:static -mx-4 sm:mx-0 px-4 sm:px-0 py-3 md:py-0 pb-safe md:pb-0 bg-background/95 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-t border-border/50 md:border-0 z-10">
+        <Button type="submit" variant="brand" disabled={isSubmitting} className="flex-1 sm:flex-initial">
           {isSubmitting ? <><Loader2 className="h-4 w-4 animate-spin" />{isEdit ? "Saving…" : "Creating…"}</> : isEdit ? "Save Changes" : "Create Product"}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.push("/admin/products")}>Cancel</Button>
