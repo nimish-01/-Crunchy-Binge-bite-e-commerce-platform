@@ -58,6 +58,29 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
     }
 
+    if (submittedVariants && submittedVariants.length > 0) {
+      // Reject duplicate SKUs within the submission itself — upserting two
+      // variants with the same SKU by SKU-lookup used to crash the whole save.
+      const skuCounts = new Map<string, number>()
+      for (const v of submittedVariants) {
+        if (!v.sku) continue
+        skuCounts.set(v.sku, (skuCounts.get(v.sku) ?? 0) + 1)
+      }
+      const dupeSku = [...skuCounts.entries()].find(([, count]) => count > 1)?.[0]
+      if (dupeSku) {
+        return NextResponse.json({ success: false, error: `Duplicate SKU "${dupeSku}" — each variant needs a unique SKU.` }, { status: 400 })
+      }
+
+      // Reject SKUs already claimed by a different product (SKU is globally unique)
+      const skusInUse = await prisma.productVariant.findMany({
+        where: { sku: { in: submittedVariants.map((v) => v.sku).filter(Boolean) }, NOT: { productId: id } },
+        select: { sku: true },
+      })
+      if (skusInUse.length > 0) {
+        return NextResponse.json({ success: false, error: `SKU "${skusInUse[0].sku}" is already used by another product.` }, { status: 409 })
+      }
+    }
+
     const product = await prisma.$transaction(async (tx) => {
       // Update product fields
       await tx.product.update({ where: { id }, data: productData })
@@ -65,13 +88,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       if (submittedVariants && submittedVariants.length > 0) {
         const existingVariants = await tx.productVariant.findMany({ where: { productId: id } })
         const submittedSkus = new Set(submittedVariants.map((v) => v.sku).filter(Boolean))
-        const existingSkus = new Set(existingVariants.map((v) => v.sku))
+        const existingBySku = new Map(existingVariants.map((v) => [v.sku, v]))
 
-        // Upsert submitted variants
+        // Upsert submitted variants — matched by id (via the pre-fetched sku
+        // map) so a mid-loop create can never collide with a later lookup.
         for (const variant of submittedVariants) {
           if (!variant.sku) continue
-          if (existingSkus.has(variant.sku)) {
-            await tx.productVariant.update({ where: { sku: variant.sku }, data: variant })
+          const match = existingBySku.get(variant.sku)
+          if (match) {
+            await tx.productVariant.update({ where: { id: match.id }, data: variant })
           } else {
             await tx.productVariant.create({ data: { ...variant, productId: id } })
           }
@@ -103,6 +128,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ success: true, data: { product }, message: "Product updated" })
   } catch (error) {
     console.error("[PATCH /api/admin/products/[id]]", error)
+    const code = (error as { code?: string } | null)?.code
+    if (code === "P2002") {
+      return NextResponse.json({ success: false, error: "A product or variant with this slug/SKU already exists." }, { status: 409 })
+    }
+    if (code === "P2003") {
+      return NextResponse.json({ success: false, error: "Invalid category selected." }, { status: 400 })
+    }
+    if (code === "P2025") {
+      return NextResponse.json({ success: false, error: "Product or variant no longer exists — refresh and try again." }, { status: 404 })
+    }
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }
