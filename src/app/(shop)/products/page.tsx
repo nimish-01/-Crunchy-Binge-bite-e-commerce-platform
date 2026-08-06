@@ -4,6 +4,7 @@ import ProductCard, { ProductCardSkeleton } from "@/components/shop/product-card
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SlidersHorizontal, Search, Package } from "lucide-react"
+import { pickDisplayVariant } from "@/lib/products/variant-selection"
 
 interface Props {
   searchParams: Promise<{ category?: string; sort?: string; q?: string }>
@@ -12,16 +13,13 @@ interface Props {
 async function ProductGrid({ searchParams }: Props) {
   const { category, sort, q } = await searchParams
 
+  const isPriceSort = sort === "price-asc" || sort === "price-desc"
   const orderBy =
-    sort === "newest"
-      ? { createdAt: "desc" as const }
-      : sort === "price-asc"
-      ? undefined
-      : sort === "price-desc"
-      ? undefined
-      : { createdAt: "asc" as const }
+    sort === "newest" ? { createdAt: "desc" as const }
+    : isPriceSort ? { createdAt: "asc" as const } // re-sorted in JS below by min variant price
+    : { createdAt: "asc" as const }
 
-  const products = await prisma.product.findMany({
+  const rawProducts = await prisma.product.findMany({
     where: {
       status: "ACTIVE",
       ...(category ? { category: { slug: category } } : {}),
@@ -29,13 +27,14 @@ async function ProductGrid({ searchParams }: Props) {
         ? {
             OR: [
               { name: { contains: q, mode: "insensitive" } },
+              { shortDescription: { contains: q, mode: "insensitive" } },
               { tags: { has: q.toLowerCase() } },
             ],
           }
         : {}),
     },
     include: {
-      variants: { where: { isActive: true } },
+      variants: { where: { isActive: true }, orderBy: [{ isDefault: "desc" }, { sortOrder: "asc" }] },
       category: true,
       productMedia: {
         include: {
@@ -50,8 +49,31 @@ async function ProductGrid({ searchParams }: Props) {
         take: 1,
       },
     },
-    orderBy: orderBy ? orderBy : { createdAt: "asc" },
+    orderBy,
   })
+
+  const sortedProducts = isPriceSort
+    ? [...rawProducts].sort((a, b) => {
+        const priceA = pickDisplayVariant(a.variants)?.price ?? 0
+        const priceB = pickDisplayVariant(b.variants)?.price ?? 0
+        return sort === "price-asc" ? priceA - priceB : priceB - priceA
+      })
+    : rawProducts
+
+  const ratings = sortedProducts.length
+    ? await prisma.review.groupBy({
+        by: ["productId"],
+        where: { productId: { in: sortedProducts.map((p) => p.id) }, status: "APPROVED" },
+        _avg: { rating: true },
+        _count: { rating: true },
+      })
+    : []
+  const ratingByProduct = new Map(ratings.map((r) => [r.productId, r]))
+  const products = sortedProducts.map((p) => ({
+    ...p,
+    avgRating: ratingByProduct.get(p.id)?._avg.rating ?? 0,
+    _count: { reviews: ratingByProduct.get(p.id)?._count.rating ?? 0 },
+  }))
 
   const categories = await prisma.category.findMany({
     where: { isActive: true },

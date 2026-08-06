@@ -16,7 +16,12 @@ export default function DeleteProductButton({ id, name }: { id: string; name: st
   async function handleDelete() {
     setLoading(true)
     try {
-      await fetch(`/api/admin/products/${id}`, { method: "DELETE" })
+      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" })
+      const json = await res.json()
+      if (!res.ok || !json.success) {
+        toast({ title: "Could not delete product", description: json.error ?? "Please try again.", variant: "destructive" })
+        return
+      }
       toast({ title: "Product deleted", description: name })
       router.refresh()
     } catch {

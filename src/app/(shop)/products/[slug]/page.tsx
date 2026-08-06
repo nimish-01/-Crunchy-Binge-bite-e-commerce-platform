@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { formatPrice, getDiscountPercent } from "@/lib/utils"
+import { pickDisplayVariant, sortVariantsForDisplay } from "@/lib/products/variant-selection"
 import AddToCartSection from "./add-to-cart-section"
 import ProductGallery from "@/components/shop/product-gallery"
 import type { GalleryItem } from "@/components/shop/product-gallery"
@@ -35,16 +36,25 @@ export default async function ProductDetailPage({ params }: Props) {
   const product = await prisma.product.findUnique({
     where: { slug, status: "ACTIVE" },
     include: {
-      variants: { where: { isActive: true }, orderBy: { price: "asc" } },
+      variants: { where: { isActive: true } },
       category: true,
       productMedia: {
         include: { mediaAsset: true },
         orderBy: [{ isThumbnail: "desc" }, { sortOrder: "asc" }],
       },
+      reviews: { where: { status: "APPROVED" }, select: { rating: true } },
+      _count: { select: { reviews: { where: { status: "APPROVED" } } } },
     },
   })
 
   if (!product || product.variants.length === 0) notFound()
+
+  product.variants = sortVariantsForDisplay(product.variants)
+
+  const avgRating =
+    product.reviews.length > 0
+      ? Math.round((product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length) * 10) / 10
+      : 0
 
   const galleryItems: GalleryItem[] =
     product.productMedia.length > 0
@@ -63,7 +73,7 @@ export default async function ProductDetailPage({ params }: Props) {
           alt: product.name,
         }))
 
-  const defaultVariant = product.variants[0]
+  const defaultVariant = pickDisplayVariant(product.variants)!
   const discount = getDiscountPercent(defaultVariant.price, defaultVariant.mrp)
 
   return (
@@ -133,18 +143,22 @@ export default async function ProductDetailPage({ params }: Props) {
             )}
           </div>
 
-          {/* Rating (placeholder) */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-0.5" aria-label="Rated 4 out of 5 stars">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={`h-4 w-4 ${s <= 4 ? "fill-brand-400 text-brand-400" : "fill-muted text-muted"}`}
-                />
-              ))}
+          {/* Rating */}
+          {product._count.reviews > 0 && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-0.5" aria-label={`Rated ${avgRating} out of 5 stars`}>
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`h-4 w-4 ${s <= Math.round(avgRating) ? "fill-brand-400 text-brand-400" : "fill-muted text-muted"}`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {avgRating} · {product._count.reviews} review{product._count.reviews !== 1 ? "s" : ""}
+              </span>
             </div>
-            <span className="text-sm text-muted-foreground">4.0 · 12 reviews</span>
-          </div>
+          )}
 
           {/* Dietary tags */}
           {product.dietaryTags.length > 0 && (

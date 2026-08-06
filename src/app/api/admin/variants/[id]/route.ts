@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin, isAdminSession } from "@/lib/api-auth"
-import { productVariantSchema } from "@/lib/validations/product"
+import { productVariantObjectSchema } from "@/lib/validations/product"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -17,7 +17,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     const body = await req.json()
-    const parsed = productVariantSchema.partial().safeParse(body)
+    const parsed = productVariantObjectSchema.partial().safeParse(body)
     if (!parsed.success) {
       return NextResponse.json({ success: false, error: parsed.error.errors[0].message }, { status: 400 })
     }
@@ -28,6 +28,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       if (conflict) {
         return NextResponse.json({ success: false, error: "A variant with this SKU already exists" }, { status: 409 })
       }
+    }
+
+    const effectivePrice = parsed.data.price ?? variant.price
+    const effectiveMrp = parsed.data.mrp ?? variant.mrp
+    if (effectivePrice > effectiveMrp) {
+      return NextResponse.json({ success: false, error: "Selling price cannot exceed MRP" }, { status: 400 })
     }
 
     const updated = await prisma.productVariant.update({ where: { id }, data: parsed.data })

@@ -14,7 +14,11 @@ export async function GET(
         category: true,
         variants: {
           where: { isActive: true },
-          orderBy: { price: "asc" },
+          orderBy: [{ isDefault: "desc" }, { sortOrder: "asc" }],
+        },
+        productMedia: {
+          include: { mediaAsset: true },
+          orderBy: [{ isThumbnail: "desc" }, { sortOrder: "asc" }],
         },
         reviews: {
           where: { status: "APPROVED" },

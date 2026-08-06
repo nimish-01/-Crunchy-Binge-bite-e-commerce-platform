@@ -1,6 +1,8 @@
 import { z } from "zod"
 
-export const productVariantSchema = z.object({
+// Base shape kept separate (pre-`.refine`) so partial-update routes can
+// still call `.partial()` — ZodEffects (the refined version) can't.
+export const productVariantObjectSchema = z.object({
   weight: z.string().min(1, "Weight is required"),
   price: z.coerce.number().positive("Price must be positive"),
   mrp: z.coerce.number().positive("MRP must be positive"),
@@ -8,6 +10,13 @@ export const productVariantSchema = z.object({
   stock: z.coerce.number().int().min(0),
   lowStockThreshold: z.coerce.number().int().min(0).default(10),
   isActive: z.boolean().default(true),
+  isDefault: z.boolean().default(false),
+  sortOrder: z.coerce.number().int().default(0),
+})
+
+export const productVariantSchema = productVariantObjectSchema.refine((v) => v.price <= v.mrp, {
+  message: "Selling price cannot exceed MRP",
+  path: ["price"],
 })
 
 export const productSchema = z.object({

@@ -17,21 +17,41 @@ const MEDIA_THUMB = {
   take: 1,
 }
 
+const VARIANT_DISPLAY_ORDER = [{ isDefault: "desc" as const }, { sortOrder: "asc" as const }]
+
+async function withRatings<T extends { id: string }>(products: T[]) {
+  if (products.length === 0) return products as (T & { avgRating: number; _count: { reviews: number } })[]
+  const ratings = await prisma.review.groupBy({
+    by: ["productId"],
+    where: { productId: { in: products.map((p) => p.id) }, status: "APPROVED" },
+    _avg: { rating: true },
+    _count: { rating: true },
+  })
+  const byProduct = new Map(ratings.map((r) => [r.productId, r]))
+  return products.map((p) => ({
+    ...p,
+    avgRating: byProduct.get(p.id)?._avg.rating ?? 0,
+    _count: { reviews: byProduct.get(p.id)?._count.rating ?? 0 },
+  }))
+}
+
 async function getFeaturedProducts() {
-  return prisma.product.findMany({
+  const products = await prisma.product.findMany({
     where: { isFeatured: true, status: "ACTIVE" },
-    include: { variants: { where: { isActive: true } }, category: true, productMedia: MEDIA_THUMB },
+    include: { variants: { where: { isActive: true }, orderBy: VARIANT_DISPLAY_ORDER }, category: true, productMedia: MEDIA_THUMB },
     take: 4,
   })
+  return withRatings(products)
 }
 
 async function getNewArrivals() {
-  return prisma.product.findMany({
+  const products = await prisma.product.findMany({
     where: { status: "ACTIVE" },
-    include: { variants: { where: { isActive: true } }, category: true, productMedia: MEDIA_THUMB },
+    include: { variants: { where: { isActive: true }, orderBy: VARIANT_DISPLAY_ORDER }, category: true, productMedia: MEDIA_THUMB },
     orderBy: { createdAt: "desc" },
     take: 4,
   })
+  return withRatings(products)
 }
 
 const WHY_ITEMS = [

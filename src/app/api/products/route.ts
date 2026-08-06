@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
+import { pickDisplayVariant } from "@/lib/products/variant-selection"
 
 const querySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
@@ -29,11 +30,18 @@ const productSelect = {
   category: { select: { id: true, name: true, slug: true } },
   variants: {
     where: { isActive: true },
-    select: { id: true, weight: true, price: true, mrp: true, stock: true, sku: true },
-    orderBy: { price: "asc" as const },
+    select: { id: true, weight: true, price: true, mrp: true, stock: true, sku: true, isActive: true, isDefault: true, sortOrder: true },
+    orderBy: [{ isDefault: "desc" as const }, { sortOrder: "asc" as const }],
+  },
+  productMedia: {
+    select: {
+      id: true, sortOrder: true, isThumbnail: true,
+      mediaAsset: { select: { id: true, secureUrl: true, thumbnailUrl: true, resourceType: true, altText: true } },
+    },
+    orderBy: [{ isThumbnail: "desc" as const }, { sortOrder: "asc" as const }],
   },
   _count: { select: { reviews: { where: { status: "APPROVED" } } } },
-} as const
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -68,9 +76,9 @@ export async function GET(req: NextRequest) {
       const sorted = all
         .filter((p) => p.variants.length > 0)
         .sort((a, b) => {
-          const minA = Math.min(...a.variants.map((v) => v.price))
-          const minB = Math.min(...b.variants.map((v) => v.price))
-          return sort === "price_asc" ? minA - minB : minB - minA
+          const priceA = pickDisplayVariant(a.variants)?.price ?? 0
+          const priceB = pickDisplayVariant(b.variants)?.price ?? 0
+          return sort === "price_asc" ? priceA - priceB : priceB - priceA
         })
       const total = sorted.length
       return NextResponse.json({

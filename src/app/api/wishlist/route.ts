@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { pickDisplayVariant } from "@/lib/products/variant-selection"
 
 const addWishlistSchema = z.object({
   productId: z.string().min(1, "productId is required"),
@@ -54,10 +55,7 @@ export async function GET(req: NextRequest) {
             isFeatured: true,
             category: { select: { id: true, name: true, slug: true } },
             variants: {
-              where: { isActive: true },
-              select: { id: true, weight: true, price: true, mrp: true, stock: true },
-              orderBy: { price: "asc" as const },
-              take: 1,
+              select: { id: true, weight: true, price: true, mrp: true, stock: true, isActive: true, isDefault: true },
             },
             _count: { select: { reviews: { where: { status: "APPROVED" } } } },
           },
@@ -66,8 +64,17 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     })
 
+    // Show the variant the customer actually wishlisted, not just the
+    // cheapest one — falls back to the representative variant only if
+    // the wishlist row has no stored variantId.
+    const items = wishlist.map((item) => {
+      const { variants, ...product } = item.product
+      const variant = variants.find((v) => v.id === item.variantId) ?? pickDisplayVariant(variants)
+      return { ...item, product: { ...product, variants: variant ? [variant] : [] } }
+    })
+
     // Support both response shapes for backward compat
-    return NextResponse.json({ success: true, items: wishlist, data: { wishlist } })
+    return NextResponse.json({ success: true, items, data: { wishlist: items } })
   } catch (error) {
     console.error("[GET /api/wishlist]", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })

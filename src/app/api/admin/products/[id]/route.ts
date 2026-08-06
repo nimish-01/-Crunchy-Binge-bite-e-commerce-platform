@@ -114,6 +114,17 @@ export async function PATCH(req: NextRequest, { params }: Params) {
             }
           }
         }
+
+        // Exactly one active variant must be the "default" shown on
+        // listing/homepage/search cards — auto-correct to the cheapest
+        // active variant if the submission left zero or more than one set.
+        const activeVariants = await tx.productVariant.findMany({ where: { productId: id, isActive: true } })
+        const defaultCount = activeVariants.filter((v) => v.isDefault).length
+        if (activeVariants.length > 0 && defaultCount !== 1) {
+          const cheapest = [...activeVariants].sort((a, b) => a.price - b.price)[0]
+          await tx.productVariant.updateMany({ where: { productId: id, isActive: true }, data: { isDefault: false } })
+          await tx.productVariant.update({ where: { id: cheapest.id }, data: { isDefault: true } })
+        }
       }
 
       return tx.product.findUnique({
@@ -162,11 +173,27 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       )
     }
 
+    const [cartItemCount, wishlistCount, subscriptionCount] = await Promise.all([
+      prisma.cartItem.count({ where: { productId: id } }),
+      prisma.wishlist.count({ where: { productId: id } }),
+      prisma.subscription.count({ where: { productId: id } }),
+    ])
+    if (cartItemCount > 0 || wishlistCount > 0 || subscriptionCount > 0) {
+      return NextResponse.json(
+        { success: false, error: "Cannot delete product — it's in a customer's cart, wishlist, or an active subscription. Archive it instead." },
+        { status: 409 }
+      )
+    }
+
     await prisma.product.delete({ where: { id } })
 
     return NextResponse.json({ success: true, message: "Product deleted" })
   } catch (error) {
     console.error("[DELETE /api/admin/products/[id]]", error)
+    const code = (error as { code?: string } | null)?.code
+    if (code === "P2003") {
+      return NextResponse.json({ success: false, error: "Cannot delete product — it's still referenced elsewhere. Archive it instead." }, { status: 409 })
+    }
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }

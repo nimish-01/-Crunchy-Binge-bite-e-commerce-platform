@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/contexts/cart-context"
 import { formatPrice, getDiscountPercent } from "@/lib/utils"
+import { pickDisplayVariant } from "@/lib/products/variant-selection"
 import { useToast } from "@/components/ui/use-toast"
 import type { ProductWithVariants } from "@/types"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -25,12 +26,28 @@ export default function ProductCard({ product, className, priority = false }: Pr
   const { toast } = useToast()
   const router = useRouter()
   const pathname = usePathname()
-  const { status: sessionStatus } = useSession()
+  const { data: session, status: sessionStatus } = useSession()
   const [adding, setAdding] = useState(false)
   const [wishlisted, setWishlisted] = useState(false)
+  const [wishlistId, setWishlistId] = useState<string | null>(null)
+  const [wishlistBusy, setWishlistBusy] = useState(false)
 
-  const defaultVariant = product.variants.find((v) => v.isActive) ?? product.variants[0]
-  if (!defaultVariant) return null
+  useEffect(() => {
+    if (!session?.user?.id) return
+    fetch(`/api/wishlist?productId=${product.id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.items?.length) {
+          setWishlisted(true)
+          setWishlistId(d.items[0].id)
+        }
+      })
+      .catch(() => null)
+  }, [session?.user?.id, product.id])
+
+  const maybeVariant = pickDisplayVariant(product.variants)
+  if (!maybeVariant) return null
+  const defaultVariant = maybeVariant
 
   const discount = getDiscountPercent(defaultVariant.price, defaultVariant.mrp)
   const isOutOfStock = defaultVariant.stock === 0
@@ -54,10 +71,37 @@ export default function ProductCard({ product, className, priority = false }: Pr
     }
   }
 
-  function handleWishlist(e: React.MouseEvent) {
+  async function handleWishlist(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    setWishlisted((v) => !v)
+    if (wishlistBusy) return
+    if (sessionStatus === "unauthenticated") {
+      router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`)
+      return
+    }
+    setWishlistBusy(true)
+    try {
+      if (wishlisted && wishlistId) {
+        await fetch(`/api/wishlist?id=${wishlistId}`, { method: "DELETE" })
+        setWishlisted(false)
+        setWishlistId(null)
+      } else {
+        const res = await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id, variantId: defaultVariant.id }),
+        })
+        const data = await res.json()
+        if (data.success && data.item) {
+          setWishlisted(true)
+          setWishlistId(data.item.id)
+        }
+      }
+    } catch {
+      toast({ title: "Could not update wishlist", variant: "destructive" })
+    } finally {
+      setWishlistBusy(false)
+    }
   }
 
   const thumb = product.productMedia?.[0]?.mediaAsset?.secureUrl ?? product.images[0]
@@ -116,15 +160,16 @@ export default function ProductCard({ product, className, priority = false }: Pr
           {/* Wishlist button */}
           <button
             onClick={handleWishlist}
+            disabled={wishlistBusy}
             aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={wishlisted}
             className={cn(
               "absolute top-2.5 right-2.5 h-8 w-8 rounded-full flex items-center justify-center",
               "bg-background/85 backdrop-blur-sm border border-border/40",
-              "transition-all duration-200",
+              "transition-all duration-200 disabled:opacity-60",
               "opacity-0 group-hover:opacity-100 focus:opacity-100",
               wishlisted
-                ? "text-red-500 border-red-500/30 bg-red-50/10"
+                ? "text-red-500 border-red-500/30 bg-red-50/10 opacity-100"
                 : "text-muted-foreground hover:text-red-400"
             )}
           >
@@ -169,23 +214,25 @@ export default function ProductCard({ product, className, priority = false }: Pr
             {product.name}
           </h3>
 
-          {/* Rating */}
-          <div className="flex items-center gap-1.5 mb-2.5" aria-label="Rating: 4 out of 5 stars">
-            <div className="flex items-center gap-0.5">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star
-                  key={s}
-                  className={cn(
-                    "h-3 w-3",
-                    s <= 4
-                      ? "fill-brand-400 text-brand-400"
-                      : "fill-muted text-muted"
-                  )}
-                />
-              ))}
+          {/* Rating — only shown once the product has real reviews */}
+          {(product._count?.reviews ?? 0) > 0 && (
+            <div className="flex items-center gap-1.5 mb-2.5" aria-label={`Rating: ${product.avgRating?.toFixed(1)} out of 5 stars`}>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={cn(
+                      "h-3 w-3",
+                      s <= Math.round(product.avgRating ?? 0)
+                        ? "fill-brand-400 text-brand-400"
+                        : "fill-muted text-muted"
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-[11px] text-muted-foreground">({product._count?.reviews})</span>
             </div>
-            <span className="text-[11px] text-muted-foreground">(12)</span>
-          </div>
+          )}
 
           {/* Price */}
           <div className="flex items-baseline gap-2">

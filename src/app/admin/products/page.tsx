@@ -25,7 +25,10 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   const skip = (currentPage - 1) * PAGE_SIZE
 
   const where = {
-    ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
+    ...(q ? { OR: [
+      { name: { contains: q, mode: "insensitive" as const } },
+      { slug: { contains: q, mode: "insensitive" as const } },
+    ] } : {}),
     ...(status && status !== "ALL" ? { status: status as ProductStatus } : {}),
     ...(categoryId && categoryId !== "ALL" ? { categoryId } : {}),
   }

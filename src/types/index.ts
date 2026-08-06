@@ -32,8 +32,9 @@ export interface ProductMediaItem {
 export type ProductWithVariants = Product & {
   variants: ProductVariant[]
   category: Category
-  _count?: { reviews: number; wishlists: number }
+  _count?: { reviews: number; wishlists?: number }
   productMedia?: ProductMediaItem[]
+  avgRating?: number
 }
 
 export type ProductWithDetails = Product & {

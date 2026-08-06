@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/contexts/cart-context"
 import { useToast } from "@/components/ui/use-toast"
 import { cn, formatPrice, getDiscountPercent } from "@/lib/utils"
+import { pickDisplayVariant } from "@/lib/products/variant-selection"
 import type { Product, ProductVariant } from "@/types"
 
 interface Props {
@@ -21,7 +22,9 @@ export default function AddToCartSection({ product }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const { status: sessionStatus } = useSession()
-  const [selectedVariantId, setSelectedVariantId] = useState(product.variants[0]?.id)
+  const [selectedVariantId, setSelectedVariantId] = useState(
+    pickDisplayVariant(product.variants)?.id ?? product.variants[0]?.id
+  )
   const [quantity, setQuantity] = useState(1)
   const [pendingAction, setPendingAction] = useState<"cart" | "buy" | null>(null)
   const [added, setAdded] = useState(false)

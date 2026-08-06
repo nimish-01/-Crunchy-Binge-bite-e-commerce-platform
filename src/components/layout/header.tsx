@@ -65,7 +65,7 @@ export default function Header() {
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (searchQuery.trim()) {
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`
+      window.location.href = `/products?q=${encodeURIComponent(searchQuery.trim())}`
     }
   }
 

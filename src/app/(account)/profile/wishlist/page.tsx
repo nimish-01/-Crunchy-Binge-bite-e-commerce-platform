@@ -3,13 +3,14 @@ import { prisma } from "@/lib/prisma"
 import { Heart } from "lucide-react"
 import Link from "next/link"
 import WishlistPageClient from "@/components/shop/wishlist-page-client"
+import { pickDisplayVariant } from "@/lib/products/variant-selection"
 
 export const metadata = { title: "My Wishlist — Crunchy Bingebite" }
 
 export default async function WishlistPage() {
   const session = await auth()
 
-  const [items, collections] = await Promise.all([
+  const [rawItems, collections] = await Promise.all([
     prisma.wishlist.findMany({
       where: { userId: session!.user.id },
       include: {
@@ -17,10 +18,7 @@ export default async function WishlistPage() {
           select: {
             id: true, name: true, slug: true, images: true, status: true,
             variants: {
-              where: { isActive: true },
-              select: { id: true, weight: true, price: true, stock: true, isActive: true },
-              orderBy: { price: "asc" as const },
-              take: 1,
+              select: { id: true, weight: true, price: true, stock: true, isActive: true, isDefault: true },
             },
           },
         },
@@ -34,6 +32,15 @@ export default async function WishlistPage() {
       orderBy: { createdAt: "asc" },
     }),
   ])
+
+  // Show the variant the customer actually wishlisted, not just the
+  // cheapest one — falls back to the representative variant only if
+  // the wishlist row has no stored variantId.
+  const items = rawItems.map((item) => {
+    const { variants, ...product } = item.product
+    const variant = variants.find((v) => v.id === item.variantId) ?? pickDisplayVariant(variants)
+    return { ...item, product: { ...product, variants: variant ? [variant] : [] } }
+  })
 
   return (
     <div className="space-y-6">

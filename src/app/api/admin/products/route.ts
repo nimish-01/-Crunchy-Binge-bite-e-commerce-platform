@@ -89,6 +89,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "A product with this slug already exists" }, { status: 409 })
     }
 
+    // Reject duplicate SKUs within the submission itself
+    const skuCounts = new Map<string, number>()
+    for (const v of variants) {
+      if (!v.sku) continue
+      skuCounts.set(v.sku, (skuCounts.get(v.sku) ?? 0) + 1)
+    }
+    const dupeSku = [...skuCounts.entries()].find(([, count]) => count > 1)?.[0]
+    if (dupeSku) {
+      return NextResponse.json({ success: false, error: `Duplicate SKU "${dupeSku}" — each variant needs a unique SKU.` }, { status: 400 })
+    }
+
+    // Reject SKUs already claimed by another product (SKU is globally unique)
+    const skusInUse = await prisma.productVariant.findMany({
+      where: { sku: { in: variants.map((v) => v.sku).filter(Boolean) } },
+      select: { sku: true },
+    })
+    if (skusInUse.length > 0) {
+      return NextResponse.json({ success: false, error: `SKU "${skusInUse[0].sku}" is already used by another product.` }, { status: 409 })
+    }
+
     const product = await prisma.$transaction(async (tx) => {
       const newProduct = await tx.product.create({
         data: { ...productData, slug: finalSlug },
@@ -101,6 +121,17 @@ export async function POST(req: NextRequest) {
           sku: v.sku || `${newProduct.id}-${v.weight}`.toLowerCase().replace(/\s/g, ""),
         })),
       })
+
+      // Exactly one active variant must be the "default" — auto-correct to
+      // the cheapest active variant if the submission left zero or more
+      // than one set.
+      const activeVariants = await tx.productVariant.findMany({ where: { productId: newProduct.id, isActive: true } })
+      const defaultCount = activeVariants.filter((v) => v.isDefault).length
+      if (activeVariants.length > 0 && defaultCount !== 1) {
+        const cheapest = [...activeVariants].sort((a, b) => a.price - b.price)[0]
+        await tx.productVariant.updateMany({ where: { productId: newProduct.id, isActive: true }, data: { isDefault: false } })
+        await tx.productVariant.update({ where: { id: cheapest.id }, data: { isDefault: true } })
+      }
 
       return tx.product.findUnique({
         where: { id: newProduct.id },
@@ -117,6 +148,13 @@ export async function POST(req: NextRequest) {
     )
   } catch (error) {
     console.error("[POST /api/admin/products]", error)
+    const code = (error as { code?: string } | null)?.code
+    if (code === "P2002") {
+      return NextResponse.json({ success: false, error: "A product or variant with this slug/SKU already exists." }, { status: 409 })
+    }
+    if (code === "P2003") {
+      return NextResponse.json({ success: false, error: "Invalid category selected." }, { status: 400 })
+    }
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }
