@@ -31,10 +31,20 @@ export async function POST(req: NextRequest, { params }: Context) {
   const product = await prisma.product.findUnique({ where: { id }, select: { id: true } })
   if (!product) return NextResponse.json({ success: false, error: "Product not found" }, { status: 404 })
 
+  // Idempotent: the picker lists every library asset, including ones already
+  // attached, so re-selecting one must resolve gracefully rather than error.
   const existing = await prisma.productMedia.findUnique({
     where: { productId_mediaAssetId: { productId: id, mediaAssetId } },
+    include: {
+      mediaAsset: {
+        select: { id: true, secureUrl: true, thumbnailUrl: true, resourceType: true, altText: true, publicId: true },
+      },
+    },
   })
-  if (existing) return NextResponse.json({ success: false, error: "Media already added to this product" }, { status: 409 })
+  if (existing) return NextResponse.json({ success: true, media: existing, alreadyAttached: true })
+
+  const mediaAsset = await prisma.mediaAsset.findUnique({ where: { id: mediaAssetId }, select: { id: true } })
+  if (!mediaAsset) return NextResponse.json({ success: false, error: "Media asset not found" }, { status: 404 })
 
   const count = await prisma.productMedia.count({ where: { productId: id } })
   const item = await prisma.productMedia.create({

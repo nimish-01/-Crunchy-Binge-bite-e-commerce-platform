@@ -51,14 +51,14 @@ export default function ProductMediaGallery({ productId }: Props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mediaAssetId: asset.id }),
     })
-    const json = await res.json()
+    const json = await res.json().catch(() => ({ success: false, error: "Unexpected server response" }))
     setSaving(false)
     if (!json.success) {
       toast({ title: "Failed to add media", description: json.error, variant: "destructive" })
       return
     }
     await fetchMedia()
-    toast({ title: "Media added" })
+    toast({ title: json.alreadyAttached ? "Media already in gallery" : "Media added" })
   }
 
   async function handleSetThumbnail(id: string) {
@@ -70,6 +70,8 @@ export default function ProductMediaGallery({ productId }: Props) {
     if (res.ok) {
       setMedia((m) => m.map((x) => ({ ...x, isThumbnail: x.id === id })))
       toast({ title: "Thumbnail updated" })
+    } else {
+      toast({ title: "Failed to update thumbnail", variant: "destructive" })
     }
   }
 
@@ -78,17 +80,24 @@ export default function ProductMediaGallery({ productId }: Props) {
     if (res.ok) {
       await fetchMedia()
       toast({ title: "Removed from gallery" })
+    } else {
+      toast({ title: "Failed to remove media", variant: "destructive" })
     }
   }
 
   async function handleReorder(next: MediaItem[]) {
+    const previous = media
     const ordered = next.map((x, i) => ({ ...x, sortOrder: i }))
     setMedia(ordered)
-    await fetch(`/api/admin/products/${productId}/media/reorder`, {
+    const res = await fetch(`/api/admin/products/${productId}/media/reorder`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items: ordered.map((x) => ({ id: x.id, sortOrder: x.sortOrder })) }),
     })
+    if (!res.ok) {
+      setMedia(previous)
+      toast({ title: "Failed to reorder — please try again", variant: "destructive" })
+    }
   }
 
   function moveUp(index: number) {
