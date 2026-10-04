@@ -7,6 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Password Reset ──────────────────────────────────────────────────────────
+// Only a SHA-256 hash of the emailed token is stored; the raw token never
+// touches the database. Tokens are single-use (usedAt) and short-lived.
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
 // ─── Auth.js Required Models ────────────────────────────────────────────────
 
 model Account {
@@ -191,6 +209,7 @@ model User {
   reviewHelpfuls      ReviewHelpful[]
   shipmentsCreated    Shipment[]           @relation("ShipmentCreatedBy")
   exchangeRequests    ExchangeRequest[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Address {

@@ -17,6 +17,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") ?? "/"
   const registered = searchParams.get("registered") === "1"
+  const passwordReset = searchParams.get("reset") === "1"
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
 
@@ -74,6 +75,15 @@ export default function LoginPage() {
         </div>
       )}
 
+      {passwordReset && (
+        <div className="flex items-center gap-3 rounded-xl border border-green-500/25 bg-green-500/8 px-4 py-3 mb-5">
+          <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+          <p className="text-sm text-green-500 font-medium">
+            Password updated! Sign in with your new password.
+          </p>
+        </div>
+      )}
+
       {/* Error */}
       {error && (
         <div className="flex items-center gap-3 rounded-xl border border-destructive/25 bg-destructive/8 px-4 py-3 mb-5">
@@ -104,7 +114,15 @@ export default function LoginPage() {
 
         {/* Password */}
         <div className="input-group">
-          <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-brand-400 hover:text-brand-300 transition-colors"
+            >
+              Forgot Password?
+            </Link>
+          </div>
           <div className="relative">
             <Input
               id="password"

@@ -24,7 +24,7 @@ function layout(preheader: string, content: string): string {
     <td style="padding:20px 32px;border-top:1px solid #222;text-align:center;">
       <p style="margin:0;font-size:11px;color:#444;line-height:1.6;">
         You received this because you have an account at Crunchy Bingebite.<br/>
-        Questions? <a href="mailto:support@bingebite.in" style="color:#f59e0b;text-decoration:none;">support@bingebite.in</a>
+        Questions? <a href="mailto:support@crunchybingebite.com" style="color:#f59e0b;text-decoration:none;">support@crunchybingebite.com</a>
       </p>
     </td>
   </tr>
@@ -73,7 +73,7 @@ ${p("Here's what you can look forward to:")}
   <li>Earn Binge Points on every order</li>
   <li>Easy returns & refunds</li>
 </ul>
-${btn("Shop Now", "https://bingebite.in/products")}`
+${btn("Shop Now", "https://www.crunchybingebite.com/products")}`
     ),
   }
 }
@@ -97,7 +97,7 @@ ${divider()}
 </table>
 ${divider()}
 ${p("We'll notify you when your order is packed and shipped.", "font-size:13px;")}
-${btn("Track Order", "https://bingebite.in/orders")}`
+${btn("Track Order", "https://www.crunchybingebite.com/orders")}`
     ),
   }
 }
@@ -120,7 +120,7 @@ ${divider()}
 </table>
 ${divider()}
 ${p("We'll start packing your order right away!", "font-size:13px;")}
-${btn("View Order", "https://bingebite.in/orders")}`
+${btn("View Order", "https://www.crunchybingebite.com/orders")}`
     ),
   }
 }
@@ -133,7 +133,7 @@ export function paymentFailedTemplate(name: string): { subject: string; html: st
       `${h1("Payment Failed")}
 ${p("Hi ${name}, we could not process your payment.")}
 ${p("Your order has not been placed. Please try again or use a different payment method.")}
-${btn("Try Again", "https://bingebite.in/checkout")}`
+${btn("Try Again", "https://www.crunchybingebite.com/checkout")}`
     ),
   }
 }
@@ -151,7 +151,7 @@ ${badge("SHIPPED")}
 ${divider()}
 ${trackingNumber ? `<table width="100%" cellpadding="0" cellspacing="0">${row("Order", "#" + orderNumber)}${row("Tracking", trackingNumber)}</table>${divider()}` : ""}
 ${p("Estimated delivery: 2–5 business days.", "font-size:13px;")}
-${btn("Track Order", "https://bingebite.in/orders")}`
+${btn("Track Order", "https://www.crunchybingebite.com/orders")}`
     ),
   }
 }
@@ -166,7 +166,7 @@ ${p("Hi ${name}, your Crunchy Bingebite order has arrived!")}
 ${badge("DELIVERED")}
 ${divider()}
 ${p("How was your snacking experience? Leave a review and earn Binge Points.", "font-size:13px;")}
-${btn("Write a Review", "https://bingebite.in/orders")}`
+${btn("Write a Review", "https://www.crunchybingebite.com/orders")}`
     ),
   }
 }
@@ -181,7 +181,7 @@ ${p("Hi ${name}, your return request for order #${orderNumber} has been approved
 ${badge("APPROVED")}
 ${divider()}
 ${p("Our team will arrange a pickup within 2–3 business days. Please keep the items ready.", "font-size:13px;")}
-${btn("View Order", "https://bingebite.in/orders")}`
+${btn("View Order", "https://www.crunchybingebite.com/orders")}`
     ),
   }
 }
@@ -204,7 +204,54 @@ ${divider()}
 </table>
 ${divider()}
 ${p("Refunds typically reflect in 5–7 business days depending on your bank.", "font-size:13px;")}
-${btn("Order History", "https://bingebite.in/orders")}`
+${btn("Order History", "https://www.crunchybingebite.com/orders")}`
+    ),
+  }
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
+export function passwordResetTemplate(
+  name: string | null, resetUrl: string, expiresInMinutes: number
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi there,"
+  const safeUrl = escapeHtml(resetUrl)
+  return {
+    subject: "Reset your Crunchy Bingebite password",
+    html: layout(
+      "Use this link to reset your password. It expires soon.",
+      `${h1("Reset your password")}
+${p(`${greeting} we received a request to reset the password for your Crunchy Bingebite account.`)}
+${p("Click the button below to choose a new password:")}
+${btn("Reset Password", safeUrl)}
+${divider()}
+${p(`This link expires in <strong style="color:#f1f1f1;">${expiresInMinutes} minutes</strong> and can only be used once.`, "font-size:13px;")}
+${p(`If the button doesn't work, copy and paste this link into your browser:<br/><a href="${safeUrl}" style="color:#f59e0b;word-break:break-all;">${safeUrl}</a>`, "font-size:12px;")}
+${p("If you didn't request a password reset, you can safely ignore this email — your password will stay the same.", "font-size:12px;color:#666;")}`
+    ),
+  }
+}
+
+export function passwordChangedTemplate(
+  name: string | null, loginUrl: string
+): { subject: string; html: string } {
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi there,"
+  return {
+    subject: "Your Crunchy Bingebite password was changed",
+    html: layout(
+      "Your password was just changed.",
+      `${h1("Password changed")}
+${p(`${greeting} the password for your Crunchy Bingebite account was just changed, and you've been signed out of all devices.`)}
+${btn("Sign In", escapeHtml(loginUrl))}
+${divider()}
+${p("If you didn't make this change, reset your password immediately and contact us at support@crunchybingebite.com.", "font-size:12px;color:#666;")}`
     ),
   }
 }

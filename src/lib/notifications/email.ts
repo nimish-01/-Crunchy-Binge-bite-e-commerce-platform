@@ -19,23 +19,39 @@ function getResend(): ResendType | null {
   return _resend
 }
 
-export const EMAIL_FROM = process.env.EMAIL_FROM ?? "Crunchy Bingebite <noreply@bingebite.in>"
+export const EMAIL_FROM = process.env.EMAIL_FROM ?? "Crunchy Bingebite <noreply@crunchybingebite.com>"
 
-export async function sendEmail(payload: EmailPayload): Promise<void> {
+export type SendEmailResult =
+  | { ok: true; id: string | null }
+  | { ok: false; error: string }
+
+/**
+ * Never throws. Resend reports API failures (unverified domain, bad key,
+ * validation) as `{ error }` rather than throwing, so both paths are handled.
+ * Only the error name/message is logged — never the recipient or email body,
+ * which may contain reset links.
+ */
+export async function sendEmail(payload: EmailPayload): Promise<SendEmailResult> {
   const resend = getResend()
   if (!resend) {
     console.warn("[notifications/email] RESEND_API_KEY not set — email skipped")
-    return
+    return { ok: false, error: "not_configured" }
   }
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: EMAIL_FROM,
       to: payload.to,
       subject: payload.subject,
       html: payload.html,
       replyTo: payload.replyTo,
     })
+    if (error) {
+      console.error(`[notifications/email] send rejected by Resend: ${error.name} — ${error.message}`)
+      return { ok: false, error: error.name }
+    }
+    return { ok: true, id: data?.id ?? null }
   } catch (err) {
-    console.error("[notifications/email] send failed:", err)
+    console.error("[notifications/email] send failed:", err instanceof Error ? err.message : "unknown error")
+    return { ok: false, error: "exception" }
   }
 }

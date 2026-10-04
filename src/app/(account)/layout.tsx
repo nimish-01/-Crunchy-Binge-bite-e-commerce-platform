@@ -6,7 +6,9 @@ import AccountNav from "./account-nav"
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
-  if (!session) redirect("/login")
+  // auth.ts blanks user.id when a session is invalidated (tokenVersion bump,
+  // deactivation, deleted user) — treat that the same as no session
+  if (!session?.user?.id) redirect("/login")
 
   return (
     <>
