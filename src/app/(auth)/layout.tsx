@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Star } from "lucide-react"
+import { Logo } from "@/components/layout/logo"
 
 const SOCIAL_PROOF = [
   { text: "\"Best makhana I've ever had. Genuinely addictive.\"", name: "Priya K.", city: "Mumbai" },
@@ -17,8 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-lg relative z-10">
-          <span className="text-brand-500 text-2xl">🌾</span>
-          <span>Crunchy Bingebite</span>
+          <Logo variant="full" size={36} priority />
         </Link>
 
         {/* Center content */}
@@ -61,8 +61,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Mobile logo */}
         <div className="lg:hidden p-5 border-b border-border/40">
           <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <span className="text-brand-500">🌾</span>
-            Crunchy Bingebite
+            <Logo variant="full" size={28} />
           </Link>
         </div>
 

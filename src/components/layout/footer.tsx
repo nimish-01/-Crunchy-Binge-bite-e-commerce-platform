@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { getSiteSettings } from "@/lib/settings"
 import { Shield, Truck, RefreshCw, Headphones, Instagram, Facebook, Twitter, Youtube, Linkedin } from "lucide-react"
+import { Logo } from "@/components/layout/logo"
 
 const LINKS = {
   Shop: [
@@ -89,8 +90,7 @@ export default async function Footer() {
           {/* Brand column */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-2 font-bold text-lg mb-4">
-              <span className="text-brand-500">🌾</span>
-              <span>{s.companyName}</span>
+              <Logo variant="full" size={32} name={s.companyName} />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               {s.footerText || "Premium makhana snacks crafted with care. Zero guilt, maximum crunch."}

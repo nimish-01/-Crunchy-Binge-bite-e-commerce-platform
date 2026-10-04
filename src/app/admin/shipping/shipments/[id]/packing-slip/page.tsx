@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { formatPrice, formatDate } from "@/lib/utils"
+import { PrintBrand } from "@/components/layout/print-brand"
+import { PrintActions } from "../print-actions"
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -41,26 +43,13 @@ export default async function PackingSlipPage({ params }: Props) {
         body { font-family: -apple-system, system-ui, sans-serif; color: #111; background: white; }
       `}</style>
 
-      <div className="no-print fixed top-4 right-4 flex gap-2 z-10">
-        <button
-          onClick={() => window.print()}
-          className="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-zinc-800 transition-colors"
-        >
-          Print
-        </button>
-        <button
-          onClick={() => window.close()}
-          className="px-4 py-2 bg-zinc-100 text-zinc-700 text-sm rounded-lg hover:bg-zinc-200 transition-colors"
-        >
-          Close
-        </button>
-      </div>
+      <PrintActions />
 
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "24px 20px" }}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, paddingBottom: 16, borderBottom: "2px solid #111" }}>
           <div>
-            <p style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>🌾 {settings?.companyName ?? "Crunchy Bingebite"}</p>
+            <PrintBrand settings={settings} height={40} nameStyle={{ fontSize: 22, fontWeight: 700 }} />
             <p style={{ fontSize: 11, color: "#666", marginTop: 2 }}>PACKING SLIP</p>
           </div>
           <div style={{ textAlign: "right" }}>

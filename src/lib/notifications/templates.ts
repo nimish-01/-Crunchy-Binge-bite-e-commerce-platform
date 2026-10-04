@@ -13,7 +13,7 @@ function layout(preheader: string, content: string): string {
 <table width="560" cellpadding="0" cellspacing="0" style="background:#111;border-radius:12px;overflow:hidden;max-width:560px;width:100%;">
   <tr>
     <td style="background:linear-gradient(135deg,#1c1c1c,#111);padding:28px 32px;border-bottom:1px solid #222;">
-      <p style="margin:0;font-size:22px;font-weight:700;color:#f59e0b;">🌾 Crunchy Bingebite</p>
+      <!--brand--><p style="margin:0;font-size:22px;font-weight:700;color:#f59e0b;">🌾 Crunchy Bingebite</p><!--/brand-->
       <p style="margin:4px 0 0;font-size:12px;color:#666;">Premium flavored makhana</p>
     </td>
   </tr>

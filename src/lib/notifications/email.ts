@@ -1,4 +1,5 @@
 import type { Resend as ResendType } from "resend"
+import { applyEmailBrand } from "./email-brand"
 
 export interface EmailPayload {
   to: string
@@ -42,7 +43,7 @@ export async function sendEmail(payload: EmailPayload): Promise<SendEmailResult>
       from: EMAIL_FROM,
       to: payload.to,
       subject: payload.subject,
-      html: payload.html,
+      html: await applyEmailBrand(payload.html), // admin-uploaded logo in the header
       replyTo: payload.replyTo,
     })
     if (error) {

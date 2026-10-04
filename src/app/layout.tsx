@@ -10,6 +10,8 @@ import { ThemeProvider } from "@/contexts/theme-context"
 import AnnouncementBar from "@/components/promotions/announcement-bar"
 import FloatingButton from "@/components/promotions/floating-button"
 import PopupManager from "@/components/promotions/popup-manager"
+import { BrandProvider, type Brand } from "@/contexts/brand-context"
+import { getSiteSettings } from "@/lib/settings"
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] })
@@ -31,8 +33,18 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 }
 
+async function getBrand(): Promise<Brand> {
+  try {
+    const s = await getSiteSettings()
+    return { logoUrl: s.logoUrl, logoLightUrl: s.logoLightUrl, logoMarkUrl: s.logoMarkUrl }
+  } catch {
+    // Settings unavailable → Logo falls back to /public files or text
+    return { logoUrl: "", logoLightUrl: "", logoMarkUrl: "" }
+  }
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth()
+  const [session, brand] = await Promise.all([auth(), getBrand()])
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -40,6 +52,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('bb-theme');document.documentElement.classList.add(['dark','light','foodie'].includes(t)?t:'dark')}catch(e){document.documentElement.classList.add('dark')}` }} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
+        <BrandProvider brand={brand}>
         <SessionProvider session={session}>
           <NotificationProvider userId={session?.user?.id}>
             <CartProvider>
@@ -53,6 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </CartProvider>
           </NotificationProvider>
         </SessionProvider>
+        </BrandProvider>
       </body>
     </html>
   )

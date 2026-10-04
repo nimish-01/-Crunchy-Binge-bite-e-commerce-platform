@@ -11,6 +11,7 @@ import NotificationBell from "@/components/notifications/notification-bell"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getInitials } from "@/lib/utils"
 import { NAV, type NavItem } from "@/components/layout/admin-nav-config"
+import { Logo } from "@/components/layout/logo"
 
 function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
   const Icon = item.icon
@@ -67,7 +68,7 @@ export default function AdminSidebar() {
             className="flex items-center gap-2 font-semibold text-base group min-w-0"
             aria-label="Crunchy Bingebite — go to storefront"
           >
-            <span className="text-brand-500 text-lg shrink-0">🌾</span>
+            <Logo variant="mark" size={22} />
             <span className="flex-1 truncate">Crunchy Bingebite</span>
             <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
           </Link>

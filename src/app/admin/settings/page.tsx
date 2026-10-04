@@ -21,7 +21,7 @@ export default async function AdminSettingsPage() {
         <div>
           <h1 className="text-2xl font-bold">Website Settings</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage company info, social links, footer text, and business details.
+            Manage company info, logo, social links, footer text, and business details.
           </p>
         </div>
         <Link

@@ -1,13 +1,16 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Search } from "lucide-react"
+import { Logo } from "@/components/layout/logo"
 
 export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md">
-        {/* Large emoji */}
-        <div className="text-8xl mb-6" aria-hidden>🌾</div>
+        {/* Brand mark */}
+        <div className="mb-6 flex justify-center" aria-hidden>
+          <Logo variant="mark" size={96} />
+        </div>
 
         {/* Status */}
         <p className="text-xs font-semibold text-brand-400 uppercase tracking-wider mb-3">

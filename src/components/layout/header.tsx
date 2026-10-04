@@ -25,6 +25,7 @@ import NotificationBell from "@/components/notifications/notification-bell"
 import ThemeToggle from "@/components/ui/theme-toggle"
 import { useState, useEffect, useRef, useTransition } from "react"
 import { cn } from "@/lib/utils"
+import { Logo } from "@/components/layout/logo"
 
 const NAV_LINKS = [
   { label: "Shop All",  href: "/products" },
@@ -132,8 +133,8 @@ export default function Header() {
             className="flex items-center gap-2 font-bold text-[1.1rem] tracking-tight shrink-0 mr-2"
             aria-label="Crunchy Bingebite home"
           >
-            <span className="text-brand-500 text-xl leading-none" aria-hidden>🌾</span>
-            <span className="hidden sm:block">Crunchy Bingebite</span>
+            <Logo variant="mark" size={28} priority className="sm:hidden" />
+            <Logo variant="full" size={30} priority className="hidden sm:inline-flex" />
           </Link>
 
           {/* Desktop Nav */}
@@ -330,8 +331,7 @@ export default function Header() {
                     className="flex items-center gap-2 font-bold"
                     onClick={() => setMobileOpen(false)}
                   >
-                    <span className="text-brand-500">🌾</span>
-                    Crunchy Bingebite
+                    <Logo variant="full" size={26} />
                   </Link>
                   <button
                     onClick={() => setMobileOpen(false)}

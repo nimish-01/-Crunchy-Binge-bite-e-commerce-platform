@@ -69,9 +69,17 @@ export default function MediaPicker({ onSelect, accept = "all", trigger, value }
       const fd = new FormData()
       fd.append("file", file)
       fd.append("folder", "binge-bite")
-      const res = await fetch("/api/admin/media/upload", { method: "POST", body: fd })
-      const json = await res.json()
-      if (!json.success) toast({ title: `Upload failed: ${file.name}`, variant: "destructive" })
+      let reason = ""
+      try {
+        const res = await fetch("/api/admin/media/upload", { method: "POST", body: fd })
+        const json = await res.json().catch(() => ({ success: false, error: `Server error (${res.status})` }))
+        if (!json.success) {
+          reason = typeof json.error === "string" ? json.error : `Server error (${res.status})`
+        }
+      } catch {
+        reason = "Network error — check your connection"
+      }
+      if (reason) toast({ title: `Upload failed: ${file.name}`, description: reason, variant: "destructive" })
     }
     setUploading(false)
     fetchAssets(1, filter, search)

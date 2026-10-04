@@ -961,6 +961,10 @@ model SiteSettings {
   id              String   @id @default("singleton")
   // Company
   companyName     String   @default("Binge Bite")
+  // Brand logo (media-library URLs; empty = use /public files or text fallback)
+  logoUrl         String   @default("") // full logo, for dark backgrounds
+  logoLightUrl    String   @default("") // optional full logo for light/foodie themes
+  logoMarkUrl     String   @default("") // icon only, for compact spots
   tagline         String   @default("Premium flavored makhana, roasted to perfection.")
   aboutText       String   @default("") @db.Text
   supportEmail    String   @default("")

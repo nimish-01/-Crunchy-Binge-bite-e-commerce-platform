@@ -2,6 +2,9 @@ import { notFound, redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { formatPrice, formatDateTime } from "@/lib/utils"
+import { getSiteSettings } from "@/lib/settings"
+import { PrintBrand } from "@/components/layout/print-brand"
+import { PrintButton } from "./print-button"
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -27,6 +30,8 @@ export default async function InvoicePage({ params }: Props) {
 
   if (!order) notFound()
 
+  const settings = await getSiteSettings().catch(() => null)
+
   const subtotal    = Number(order.subtotal)
   const discount    = Number(order.discountAmount)
   const delivery    = Number(order.deliveryCharge)
@@ -39,18 +44,13 @@ export default async function InvoicePage({ params }: Props) {
 
         {/* Print button — hidden in print */}
         <div className="flex justify-end mb-6 print:hidden">
-          <button
-            onClick={() => window.print()}
-            className="px-4 py-2 bg-black text-white text-sm rounded hover:bg-gray-800"
-          >
-            Print / Save PDF
-          </button>
+          <PrintButton />
         </div>
 
         {/* Header */}
         <div className="flex justify-between items-start border-b border-gray-200 pb-6 mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Crunchy Bingebite</h1>
+            <PrintBrand settings={settings} height={44} nameClassName="text-2xl font-bold" />
             <p className="text-sm text-gray-500 mt-0.5">Premium Makhana</p>
             <p className="text-xs text-gray-400 mt-1">
               support@bingebite.in · www.bingebite.in

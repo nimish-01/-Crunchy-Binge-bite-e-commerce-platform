@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { siteSettingsSchema, type SiteSettingsInput } from "@/lib/validations/settings"
 import type { SiteSettings } from "@prisma/client"
+import { LogoField } from "./logo-field"
 
 interface Props {
   settings: SiteSettings
@@ -43,11 +44,16 @@ export default function SettingsForm({ settings }: Props) {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<SiteSettingsInput>({
     resolver: zodResolver(siteSettingsSchema),
     defaultValues: {
       companyName:     settings.companyName,
+      logoUrl:         settings.logoUrl,
+      logoLightUrl:    settings.logoLightUrl,
+      logoMarkUrl:     settings.logoMarkUrl,
       tagline:         settings.tagline,
       aboutText:       settings.aboutText,
       supportEmail:    settings.supportEmail,
@@ -65,6 +71,9 @@ export default function SettingsForm({ settings }: Props) {
       googleMapsLink:  settings.googleMapsLink,
     },
   })
+
+  type LogoKey = "logoUrl" | "logoLightUrl" | "logoMarkUrl"
+  const setLogo = (key: LogoKey) => (url: string) => setValue(key, url, { shouldDirty: true })
 
   async function onSubmit(data: SiteSettingsInput) {
     const res = await fetch("/api/admin/settings", {
@@ -86,10 +95,51 @@ export default function SettingsForm({ settings }: Props) {
       <Tabs defaultValue="company">
         <TabsList className="mb-4">
           <TabsTrigger value="company">Company</TabsTrigger>
+          <TabsTrigger value="logo">Logo</TabsTrigger>
           <TabsTrigger value="social">Social Media</TabsTrigger>
           <TabsTrigger value="footer">Footer</TabsTrigger>
           <TabsTrigger value="business">Business</TabsTrigger>
         </TabsList>
+
+        {/* ── Logo ────────────────────────────────────────────────── */}
+        <TabsContent value="logo">
+          <Card>
+            <CardHeader>
+              <CardTitle>Brand Logo</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Shown in the site header, footer, login pages, admin and inventory panels.
+                Use SVG or a transparent PNG. Click <span className="font-medium">Save Changes</span> to publish.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <LogoField
+                label="Main logo"
+                description="Full logo (icon + name). Used on the default dark theme — light-coloured artwork works best."
+                value={watch("logoUrl") ?? ""}
+                onChange={setLogo("logoUrl")}
+                preview="dark"
+                error={errors.logoUrl?.message}
+              />
+              <LogoField
+                label="Logo for light backgrounds (optional)"
+                description="Used when a customer switches to the Light or Foodie theme. If empty, the main logo is used."
+                value={watch("logoLightUrl") ?? ""}
+                onChange={setLogo("logoLightUrl")}
+                preview="light"
+                error={errors.logoLightUrl?.message}
+              />
+              <LogoField
+                label="Icon"
+                description="Square icon without the name, for compact spots like the mobile header and admin sidebar. Should work on dark and light."
+                value={watch("logoMarkUrl") ?? ""}
+                onChange={setLogo("logoMarkUrl")}
+                preview="both"
+                height={48}
+                error={errors.logoMarkUrl?.message}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* ── Company ─────────────────────────────────────────────── */}
         <TabsContent value="company">

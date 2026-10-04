@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import NotificationBell from "@/components/notifications/notification-bell"
 import { NAV, type NavItem } from "@/components/layout/admin-nav-config"
+import { Logo } from "@/components/layout/logo"
 
 const SWIPE_CLOSE_THRESHOLD = 70
 
@@ -104,7 +105,7 @@ export default function AdminMobileHeader() {
                 className="flex items-center gap-2 font-semibold text-sm group min-w-0"
                 aria-label="Crunchy Bingebite — go to storefront"
               >
-                <span className="text-brand-500 text-lg shrink-0">🌾</span>
+                <Logo variant="mark" size={22} />
                 <span className="truncate">Admin Panel</span>
                 <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </Link>
@@ -184,7 +185,7 @@ export default function AdminMobileHeader() {
         </Sheet>
 
         <Link href="/admin" className="flex items-center gap-1.5 font-semibold text-sm truncate" aria-label="Admin dashboard">
-          <span className="text-brand-500 text-base shrink-0" aria-hidden>🌾</span>
+          <Logo variant="mark" size={20} />
           <span className="truncate">Admin</span>
         </Link>
       </div>

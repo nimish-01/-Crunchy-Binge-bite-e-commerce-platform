@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getInitials } from "@/lib/utils"
 import NotificationBell from "@/components/notifications/notification-bell"
+import { Logo } from "@/components/layout/logo"
 
 const NAV = [
   { label: "Dashboard", href: "/inventory", icon: LayoutDashboard },
@@ -33,7 +34,7 @@ export default function InventorySidebar() {
       <div className="p-6 border-b border-border/40">
         <div className="flex items-center justify-between gap-2">
           <Link href="/" className="flex items-center gap-2 font-bold text-lg min-w-0">
-            <span className="text-brand-500 shrink-0">🌾</span>
+            <Logo variant="mark" size={24} />
             <span className="truncate">Inventory</span>
           </Link>
           <NotificationBell portal="inventory" />
