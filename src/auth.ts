@@ -1,10 +1,23 @@
-import NextAuth from "next-auth"
+import NextAuth, { CredentialsSignin } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import type { UserRole } from "@prisma/client"
 import { authConfig } from "./auth.config"
+import { otpRequestSchema, otpCodeSchema } from "@/lib/validations/auth"
+import { verifyLoginOtp } from "@/lib/services/email-otp"
+import { rateLimit, getClientIp } from "@/lib/rate-limit"
+
+// Surfaces a non-sensitive reason to the client as `result.code`. Every OTP
+// failure is reported as "invalid" so the response can't reveal whether an
+// account or active code exists; "rate_limited" is per-IP and account-agnostic.
+class OtpSignInError extends CredentialsSignin {
+  constructor(code: "invalid" | "rate_limited") {
+    super()
+    this.code = code
+  }
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -44,6 +57,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           isActive:     user.isActive,
           tokenVersion: user.tokenVersion,
         }
+      },
+    }),
+    // Passwordless email OTP — CUSTOMER accounts only (enforced in verifyLoginOtp).
+    // Returns the same user shape as the password provider, so the JWT/session
+    // callbacks and tokenVersion invalidation behave identically.
+    Credentials({
+      id: "email-otp",
+      name: "Email code",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        code:  { label: "Code",  type: "text"  },
+      },
+      async authorize(credentials, request) {
+        const email = otpRequestSchema.safeParse({ email: credentials?.email })
+        const code  = otpCodeSchema.safeParse(credentials?.code)
+        if (!email.success || !code.success) throw new OtpSignInError("invalid")
+
+        if (!rateLimit(`otp-verify:${getClientIp(request)}`, 20, 15 * 60 * 1000)) {
+          throw new OtpSignInError("rate_limited")
+        }
+
+        const result = await verifyLoginOtp(email.data.email, code.data)
+        if (!result.ok) throw new OtpSignInError("invalid")
+        return result.user
       },
     }),
   ],

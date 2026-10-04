@@ -25,6 +25,25 @@ model PasswordResetToken {
   @@index([expiresAt])
 }
 
+// ─── Email OTP Login ─────────────────────────────────────────────────────────
+// Passwordless sign-in codes for CUSTOMER accounts. Only an HMAC of the code is
+// stored. Codes are single-use (usedAt), short-lived, and attempt-limited.
+
+model EmailLoginOtp {
+  id           String    @id @default(cuid())
+  userId       String
+  otpHash      String
+  expiresAt    DateTime
+  usedAt       DateTime?
+  attemptCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
 // ─── Auth.js Required Models ────────────────────────────────────────────────
 
 model Account {
@@ -210,6 +229,7 @@ model User {
   shipmentsCreated    Shipment[]           @relation("ShipmentCreatedBy")
   exchangeRequests    ExchangeRequest[]
   passwordResetTokens PasswordResetToken[]
+  emailLoginOtps      EmailLoginOtp[]
 }
 
 model Address {

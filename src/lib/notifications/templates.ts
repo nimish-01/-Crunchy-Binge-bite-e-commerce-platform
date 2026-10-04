@@ -255,3 +255,25 @@ ${p("If you didn't make this change, reset your password immediately and contact
     ),
   }
 }
+
+export function loginOtpTemplate(code: string, expiresInMinutes: number): { subject: string; html: string } {
+  const safeCode = escapeHtml(code)
+  return {
+    subject: "Your Binge Bite verification code",
+    html: layout(
+      `Your verification code is ${safeCode}. It expires in ${expiresInMinutes} minutes.`,
+      `${h1("Sign in to Crunchy Bingebite")}
+${p("Use the code below to finish signing in. No password needed.")}
+<table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;">
+  <tr><td align="center" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:22px 16px;">
+    <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:2px;color:#888;">YOUR VERIFICATION CODE</p>
+    <p style="margin:0;font-size:34px;font-weight:700;letter-spacing:10px;color:#f59e0b;font-family:'SFMono-Regular',Menlo,Consolas,monospace;">${safeCode}</p>
+  </td></tr>
+</table>
+${p(`This code expires in <strong style="color:#f1f1f1;">${expiresInMinutes} minutes</strong> and can only be used once.`, "font-size:13px;")}
+${divider()}
+${p("Never share this code with anyone. Crunchy Bingebite will never ask you for it.", "font-size:12px;color:#666;")}
+${p("If you didn't request this code, you can safely ignore this email.", "font-size:12px;color:#666;")}`
+    ),
+  }
+}

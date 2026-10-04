@@ -1,5 +1,3 @@
-import type { NextRequest } from "next/server"
-
 /**
  * Minimal fixed-window rate limiter (in-memory, per server instance).
  * Best-effort on serverless — pair with a DB-backed limit for anything that
@@ -25,7 +23,7 @@ export function rateLimit(key: string, limit: number, windowMs: number): boolean
   return true
 }
 
-export function getClientIp(req: NextRequest): string {
+export function getClientIp(req: { headers: Headers }): string {
   return (
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     req.headers.get("x-real-ip") ||

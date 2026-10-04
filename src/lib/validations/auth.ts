@@ -37,6 +37,10 @@ export const resetPasswordSchema = z.object({
   path: ["confirmPassword"],
 })
 
+// Email OTP login (request uses the same email rules as forgot-password)
+export const otpRequestSchema = forgotPasswordSchema
+export const otpCodeSchema = z.string().regex(/^\d{6}$/, "Enter the 6-digit code")
+
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>

@@ -1,6 +1,7 @@
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { findUserByEmail } from "@/lib/auth/find-user-by-email"
 import { sendEmail } from "@/lib/notifications/email"
 import { passwordResetTemplate, passwordChangedTemplate } from "@/lib/notifications/templates"
 
@@ -32,17 +33,6 @@ export function generateResetToken(): { token: string; tokenHash: string } {
  */
 export function hashResetToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex")
-}
-
-async function findUserByEmail(email: string) {
-  // Registration stores email as typed, so match case-insensitively but
-  // prefer an exact match if multiple accounts differ only by case.
-  const matches = await prisma.user.findMany({
-    where: { email: { equals: email, mode: "insensitive" } },
-    select: { id: true, name: true, email: true, role: true, isActive: true },
-    take: 2,
-  })
-  return matches.find((u) => u.email === email) ?? (matches.length === 1 ? matches[0] : null)
 }
 
 /**
